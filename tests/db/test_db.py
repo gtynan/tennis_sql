@@ -8,12 +8,12 @@ from sqlalchemy.orm.exc import MultipleResultsFound
 from src.constants import player_csv_map
 from ..conftest import TEST_DB
 from src.db.db import CommandDB, QueryDB
-from src.db.tables import Player
+from src.db.tables import Player, _Game, WTA, ITF, Tournament
 from src.data_scraping import get_raw_players
 from src.data_cleaning import raw_player_to_object
 
 # tables to check for in TestDBClient test_schema
-TABLE_CLASSES = [Player()]
+TABLE_CLASSES = [Player(), _Game(), WTA(), ITF(), Tournament()]
 
 
 @pytest.fixture(scope='module')
