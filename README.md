@@ -5,7 +5,7 @@ Tennis SQL attempts to move all of https://github.com/JeffSackmann/ .csv tennis 
 ## Todo 
 
 1 - Ingestion
-    1.1 - Create 'players' table
+    ~~1.1 - Create 'players' table~~
     1.2 - Create 'games' table
     1.3 - Inherit from games to create seperate WTA, ITF tables 
     1.4 - Scrape data from github
