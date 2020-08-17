@@ -6,7 +6,6 @@ from src.data_scraping import get_raw_players
 from src.constants import player_csv_map
 
 
-@pytest.mark.slow
 def test_get_raw_players(sample_players):
     raw_players = sample_players
     expected_columns = list(player_csv_map.values())
