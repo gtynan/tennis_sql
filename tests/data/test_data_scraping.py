@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 
-from src.data_scraping import get_raw_players
+from src.data.data_scraping import get_raw_players
 from src.constants import player_csv_map, game_csv_map, tournament_csv_map
 
 

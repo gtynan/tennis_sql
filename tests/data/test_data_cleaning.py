@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime
 
 from src.db.tables import WTA
-from src.data_cleaning import (
+from src.data.data_cleaning import (
     raw_player_to_object, raw_game_to_object, raw_tournament_to_object, score_to_int_data)
 from src.constants import player_csv_map, game_csv_map, tournament_csv_map
 

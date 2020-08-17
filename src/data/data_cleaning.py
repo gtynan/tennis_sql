@@ -4,8 +4,8 @@ import numpy as np
 from datetime import datetime
 import re
 
-from .db.tables import Player, _Game, WTA, ITF, Tournament
-from .constants import player_csv_map, game_csv_map, tournament_csv_map
+from ..db.tables import Player, _Game, WTA, ITF, Tournament
+from ..constants import player_csv_map, game_csv_map, tournament_csv_map
 
 
 def raw_player_to_object(raw_player: pd.Series) -> Player:
