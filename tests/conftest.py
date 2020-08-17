@@ -1,12 +1,14 @@
 import pytest
-from src.db.db import Database
+from src.db.db import DBClient
 
-# db instance
-@pytest.fixture(scope='session')
-def db():
-    return Database(db_name='test_db')
 
-# single session to interact with db
 @pytest.fixture(scope='session')
-def session(db):
-    return db._Session()
+def db_client():
+    # db instance
+    return DBClient(db_name='test_db')
+
+
+@pytest.fixture(scope='session')
+def session(db_client):
+    # single session to interact with db
+    return db_client._Session()

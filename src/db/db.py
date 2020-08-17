@@ -3,10 +3,14 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 
 from ._secrets import db_config
+from .tables import Base
 
-Base = declarative_base()
+'''
+Seperating read and write responsibilies
+'''
 
-class Database:
+
+class DBClient:
 
     def __init__(self,
                  db_user: str = db_config['user'],
@@ -25,3 +29,16 @@ class Database:
         self._Session = sessionmaker(bind=self.engine)
         # session object to communicate with db
         self.session = self._Session()
+
+
+class CommandDB(DBClient):
+    '''
+    Write side
+    '''
+
+
+class QueryDB(DBClient):
+    '''
+    Read side
+    '''
+    pass
