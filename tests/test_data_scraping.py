@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 
-from src.data_scraping.data_scraping import get_raw_players
+from src.data_scraping import get_raw_players
 
 
 def test_get_raw_players():
