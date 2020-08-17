@@ -4,8 +4,8 @@ import numpy as np
 from datetime import datetime
 import re
 
-from .db.tables import Player
-from .constants import player_csv_map
+from .db.tables import Player, _Game, WTA, ITF, Tournament
+from .constants import player_csv_map, game_csv_map, tournament_csv_map
 
 
 def raw_player_to_object(raw_player: pd.Series) -> Player:
@@ -15,6 +15,40 @@ def raw_player_to_object(raw_player: pd.Series) -> Player:
                   dob=datetime.strptime(
                       str(raw_player[player_csv_map['dob']]), '%Y%m%d'),
                   hand=raw_player[player_csv_map['hand']])
+
+
+# TODO overload so that WTA or ITF returned as type hint
+def raw_game_to_object(raw_game: pd.Series) -> _Game:
+    w_games, w_sets, l_games, l_sets = score_to_int_data(
+        raw_game[game_csv_map['score']])
+
+    game = _Game(
+        round=raw_game[game_csv_map['round']],
+        score=raw_game[game_csv_map['score']],
+        w_games=w_games,
+        w_sets=w_sets,
+        w_rank=raw_game[game_csv_map['w_rank']],
+        l_games=l_games,
+        l_sets=l_sets,
+        l_rank=raw_game[game_csv_map['l_rank']],
+        completed=~pd.isnull(w_sets)
+    )
+    # casting to child based on source
+    if raw_game['source'] == 'W':
+        game.__class__ = WTA
+    else:
+        game.__class__ = ITF
+    return game
+
+
+def raw_tournament_to_object(raw_tournament: pd.Series) -> Tournament:
+    return Tournament(
+        name=raw_tournament[tournament_csv_map['name']],
+        start_date=datetime.strptime(
+            raw_tournament[tournament_csv_map['start_date']], '%Y%m%d'),
+        surface=raw_tournament[tournament_csv_map['surface']],
+        level=raw_tournament[tournament_csv_map['level']]
+    )
 
 
 def score_to_int_data(score: str) -> Tuple[int, int, int, int]:
