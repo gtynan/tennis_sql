@@ -1,9 +1,13 @@
+from typing import List
+from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.exc import NoResultFound
 
 from ._secrets import db_config
-from .tables import Base
+from .tables import Base, Player
 
 '''
 Seperating read and write responsibilies
@@ -31,14 +35,54 @@ class DBClient:
         self.session = self._Session()
 
 
-class CommandDB(DBClient):
+class CommandDB:
     '''
     Write side
     '''
 
+    def __init__(self, db_client: DBClient) -> None:
+        self.db_client = db_client
+        # some writes require read to ensure no duplicates
+        self.query_db = QueryDB(db_client)
 
-class QueryDB(DBClient):
+    def create_players(self, players: List[Player], check_duplicates: bool = True) -> None:
+        '''
+        Writes players to database
+
+        args:
+            check_duplicates: if true will not add players already in db
+        '''
+        if check_duplicates:
+            # for each player check if exists, if not add
+            for player in players:
+                try:
+                    self.query_db.read_player(
+                        player.fname, player.lname, player.dob)
+                except NoResultFound:
+                    self.db_client.session.add(player)
+        else:
+            self.db_client.session.add_all(players)
+        self.db_client.session.commit()
+
+
+class QueryDB:
     '''
     Read side
     '''
-    pass
+
+    def __init__(self, db_client: DBClient):
+        self.db_client = db_client
+
+    def read_player(self, fname: str, lname: str, dob: datetime) -> Player:
+        '''
+        Gets player from db, raises error if none or more than one instance
+
+        args:
+            fname: first name
+            lname: last name
+            dob: date of birth
+        '''
+        return self.db_client.session.query(Player).\
+            filter(Player.fname == fname).\
+            filter(Player.lname == lname).\
+            filter(Player.dob == dob).one()
