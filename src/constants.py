@@ -1,5 +1,3 @@
-
-
 # player details : column name in Jeff Scakman csv
 player_csv_map = {
     'fname': 'X',
