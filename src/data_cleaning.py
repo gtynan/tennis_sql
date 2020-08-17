@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Union
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -9,7 +9,8 @@ from .constants import player_csv_map, game_csv_map, tournament_csv_map
 
 
 def raw_player_to_object(raw_player: pd.Series) -> Player:
-    return Player(fname=raw_player[player_csv_map['fname']],
+    return Player(id=raw_player[player_csv_map['id']],
+                  fname=raw_player[player_csv_map['fname']],
                   lname=raw_player[player_csv_map['lname']],
                   nationality=raw_player[player_csv_map['nationality']],
                   dob=datetime.strptime(
@@ -17,17 +18,18 @@ def raw_player_to_object(raw_player: pd.Series) -> Player:
                   hand=raw_player[player_csv_map['hand']])
 
 
-# TODO overload so that WTA or ITF returned as type hint
-def raw_game_to_object(raw_game: pd.Series) -> _Game:
+def raw_game_to_object(raw_game: pd.Series) -> Union[WTA, ITF]:
     w_games, w_sets, l_games, l_sets = score_to_int_data(
         raw_game[game_csv_map['score']])
 
     game = _Game(
         round=raw_game[game_csv_map['round']],
         score=raw_game[game_csv_map['score']],
+        w_player_id=raw_game[game_csv_map['w_player_id']],
         w_games=w_games,
         w_sets=w_sets,
         w_rank=raw_game[game_csv_map['w_rank']],
+        l_player_id=raw_game[game_csv_map['l_player_id']],
         l_games=l_games,
         l_sets=l_sets,
         l_rank=raw_game[game_csv_map['l_rank']],

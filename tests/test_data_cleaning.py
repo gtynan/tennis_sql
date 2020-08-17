@@ -9,9 +9,9 @@ from src.constants import player_csv_map, game_csv_map, tournament_csv_map
 
 
 def test_raw_player_to_object():
-    fname, lname, nationality, dob, hand = "Tom", "Robinson", "USA", 20000101, "R"
+    id, fname, lname, nationality, dob, hand = 1, "Tom", "Robinson", "USA", 20000101, "R"
 
-    raw_player = pd.Series(data=[fname, lname, nationality, dob, hand],
+    raw_player = pd.Series(data=[id, fname, lname, nationality, dob, hand],
                            index=player_csv_map.values())
     player_object = raw_player_to_object(raw_player)
 
@@ -23,18 +23,20 @@ def test_raw_player_to_object():
 
 
 def test_raw_game_to_object():
-    round_, score, w_rank, l_rank, source = 'SF', '6-0 6-2', 1, 2, 'W'
+    round_, score, w_id, w_rank, l_id, l_rank, source = 'SF', '6-0 6-2', 1, 1, 2, 2, 'W'
 
-    raw_game = pd.Series(data=[round_, score, w_rank, l_rank, source],
+    raw_game = pd.Series(data=[round_, score, w_id, w_rank, l_id, l_rank, source],
                          index=list(game_csv_map.values()) + ['source'])
     game_object = raw_game_to_object(raw_game)
 
     assert isinstance(game_object, WTA)
     assert game_object.round == round_
     assert game_object.score == score
+    assert game_object.w_player_id == w_id
     assert game_object.w_games == 12
     assert game_object.w_sets == 2
     assert game_object.w_rank == w_rank
+    assert game_object.l_player_id == l_id
     assert game_object.l_games == 2
     assert game_object.l_sets == 0
     assert game_object.l_rank == l_rank

@@ -1,4 +1,5 @@
 player_csv_map = {
+    'id': '200000',
     'fname': 'X',
     'lname': 'X.1',
     'nationality': 'UNK',
@@ -9,7 +10,9 @@ player_csv_map = {
 game_csv_map = {
     'round': 'round',
     'score': 'score',
+    'w_player_id': 'winner_id',
     'w_rank': 'winner_rank',
+    'l_player_id': 'loser_id',
     'l_rank': 'loser_rank'
 }
 
