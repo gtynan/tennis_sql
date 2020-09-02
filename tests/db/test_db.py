@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from src.db_models.player import Player
-from src.db.db import CommandDB
+from src.db.db import CommandDB, QueryDB
 from ..conftest import TEST_DB
 
 
@@ -35,3 +35,19 @@ class TestCommandDB:
             filter(Player.nationality == nation).\
             filter(Player.dob == dob).\
             filter(Player.hand == hand).one()
+
+
+class TestQueryDB:
+
+    @pytest.fixture(scope='module')
+    def query_db(self, db_client):
+        return QueryDB(db_client)
+
+    def test_get_player(self, query_db):
+        fname, lname, dob = "Tom", "Jones", datetime.date(2000, 1, 1)
+        player = query_db.get_player(fname, lname, dob)
+
+        assert player.first_name == fname
+        assert player.last_name == lname
+        assert player.dob == dob
+        assert query_db.get_player("Test", "Player", datetime.date.today()) is None

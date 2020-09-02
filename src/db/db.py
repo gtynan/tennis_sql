@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ._secrets import db_config
 from ..db_models.base import BASE
@@ -36,8 +39,38 @@ class CommandDB:
         self.db_client = db_client
 
     def add_player(self, player: Player) -> None:
-        '''
-        Writes players to database
-        '''
+        """Add player to database
+
+        Args:
+            player (Player): instance of player to add
+        """
         self.db_client.session.add(player)
         self.db_client.session.commit()
+
+
+class QueryDB:
+    '''
+    Read side
+    '''
+
+    def __init__(self, db_client: DBClient) -> None:
+        self.db_client = db_client
+
+    def get_player(self, first_name: str, last_name: str, dob: datetime) -> Player:
+        """Get player from database
+
+        Args:
+            first_name (str): player's first name
+            last_name (str): player's last name
+            dob (datetime): player's date of birth
+
+        Returns:
+            Player: instance of queried player
+        """
+        try:
+            return self.db_client.session.query(Player).\
+                filter(Player.first_name == first_name).\
+                filter(Player.last_name == last_name).\
+                filter(Player.dob == dob).one_or_none()
+        except MultipleResultsFound:
+            raise Exception("Multiple instances of same player found.")
