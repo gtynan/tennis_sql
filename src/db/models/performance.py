@@ -2,9 +2,6 @@ from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from .base import BASE
-from .player import Player
-
-# TODO ensure best pratice for 1:1
 
 
 class Performance(BASE):
@@ -12,7 +9,8 @@ class Performance(BASE):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
 
-    player_id = Column(Integer, ForeignKey(f'{Player.__tablename__}.id'))
+    player_id = Column(Integer, ForeignKey(f'player.id'))
+
     seed = Column(Integer)
     entry = Column(String(50))
     aces = Column(Integer)
