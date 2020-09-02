@@ -6,9 +6,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ._secrets import db_config
-from ..db_models.base import BASE
-from ..db_models.player import Player
-from ..db_models.tournament import Tournament
+from .models.base import BASE
+from .models.player import Player
+from .models.tournament import Tournament
 
 
 class DBClient:

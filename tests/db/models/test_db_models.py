@@ -2,11 +2,11 @@ import pytest
 import numpy as np
 from sqlalchemy import inspect
 
-from ..conftest import TEST_DB
-from src.db_models.player import Player
-from src.db_models.game import _Game, WTA, ITF
-from src.db_models.tournament import Tournament
-from src.db_models.performance import Performance
+from tests.conftest import TEST_DB
+from src.db.models.player import Player
+from src.db.models.game import _Game, WTA, ITF
+from src.db.models.tournament import Tournament
+from src.db.models.performance import Performance
 
 
 # TODO dynamically pull all classes from db_models

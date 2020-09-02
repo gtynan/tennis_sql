@@ -4,8 +4,8 @@ import numpy as np
 
 from ..conftest import TEST_DB
 from src.db.db import CommandDB, QueryDB
-from src.db_models.player import Player
-from src.db_models.tournament import Tournament
+from src.db.models.player import Player
+from src.db.models.tournament import Tournament
 
 
 class TestDBClient:

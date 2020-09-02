@@ -4,6 +4,8 @@ from sqlalchemy.orm import relationship
 from .base import BASE
 from .player import Player
 
+# TODO ensure best pratice for 1:1
+
 
 class Performance(BASE):
     __tablename__ = 'performance'

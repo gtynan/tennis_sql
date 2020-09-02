@@ -5,6 +5,8 @@ from .base import BASE
 from .tournament import Tournament
 from .performance import Performance
 
+# TODO ensure best pratice for 1:1
+
 
 class _Game(BASE):
     __tablename__ = 'game'
