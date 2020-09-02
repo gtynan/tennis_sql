@@ -17,13 +17,3 @@ def db_client():
     db_client.session.close()
     for table in reversed(BASE.metadata.sorted_tables):
         table.drop(db_client.engine)
-
-
-@pytest.fixture(scope='session')
-def sample_players() -> None:
-    return get_raw_players(n_players=5)
-
-
-@pytest.fixture(scope='session')
-def sample_games() -> None:
-    return get_raw_games(year_from=2020, year_to=2020, n_games=5)
