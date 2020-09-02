@@ -19,6 +19,15 @@ class DBClient:
                  db_host: str = db_config['host'],
                  db_port: str = db_config['port'],
                  db_name: str = db_config['database']) -> None:
+        """Create connection to database
+
+        Args:
+            db_user (str, optional): database user name. Defaults to db_config['user'].
+            db_pwd (str, optional): database password. Defaults to db_config['password'].
+            db_host (str, optional): database host. Defaults to db_config['host'].
+            db_port (str, optional): database port. Defaults to db_config['port'].
+            db_name (str, optional): database name. Defaults to db_config['database'].
+        """
 
         connection_str = f'mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}'
         self.engine = create_engine(connection_str, echo=True)
