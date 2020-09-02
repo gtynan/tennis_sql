@@ -1,5 +1,4 @@
 import pytest
-from datetime import datetime
 import numpy as np
 from sqlalchemy import inspect
 
@@ -16,12 +15,6 @@ TABLE_CLASSES = [Player(), _Game(), WTA(), ITF(), Tournament(), Performance()]
 
 
 class TestDBModels:
-
-    def test_init(self, db_client):
-        '''
-        Ensure connected to expected database.
-        '''
-        assert db_client.engine.url.database == TEST_DB
 
     def test_schema(self, db_client):
         '''
