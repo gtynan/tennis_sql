@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime
 
 from sqlalchemy import create_engine
@@ -7,6 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from ._secrets import db_config
 from ..db_models.base import BASE
 from ..db_models.player import Player
+from ..db_models.tournament import Tournament
 
 
 class DBClient:
@@ -38,14 +40,30 @@ class CommandDB:
     def __init__(self, db_client: DBClient) -> None:
         self.db_client = db_client
 
+    def _add_instance(self, instance: Union[Player, Tournament]):
+        """Handles all single instance additions to the database
+
+        Args:
+            instance (Union[Player, Tournament]): instance of any db_model
+        """
+        self.db_client.session.add(instance)
+        self.db_client.session.commit()
+
     def add_player(self, player: Player) -> None:
         """Add player to database
 
         Args:
             player (Player): instance of player to add
         """
-        self.db_client.session.add(player)
-        self.db_client.session.commit()
+        self._add_instance(player)
+
+    def add_tournament(self, tournament: Tournament) -> None:
+        """Add tournament to database
+
+        Args:
+            tournament (Tournament): instance of tournament to add
+        """
+        self._add_instance(tournament)
 
 
 class QueryDB:
@@ -74,3 +92,20 @@ class QueryDB:
                 filter(Player.dob == dob).one_or_none()
         except MultipleResultsFound:
             raise Exception("Multiple instances of same player found.")
+
+    def get_tournament(self, name: str, start_date: datetime) -> Tournament:
+        """Get tournament from database
+
+        Args:
+            name (str): tournament name
+            start_date (datetime): tournament start date
+
+        Returns:
+            Tournament: instance of queried tournamnet
+        """
+        try:
+            return self.db_client.session.query(Tournament).\
+                filter(Tournament.name == name).\
+                filter(Tournament.start_date == start_date).one_or_none()
+        except MultipleResultsFound:
+            raise Exception("Multiple instances of same tournament found.")
