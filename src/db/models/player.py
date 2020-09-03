@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date
+from sqlalchemy.orm import column_property
 from .base import BASE
 
 
@@ -12,3 +13,5 @@ class Player(BASE):
     nationality = Column(String(50))
     dob = Column(Date)
     hand = Column(String(50))
+
+    name = column_property(first_name + " " + last_name)

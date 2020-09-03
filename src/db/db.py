@@ -93,7 +93,7 @@ class QueryDB:
     def __init__(self, db_client: DBClient) -> None:
         self.db_client = db_client
 
-    def get_player(self, first_name: str, last_name: str, dob: datetime) -> Player:
+    def get_player(self, name: str, dob: datetime) -> Player:
         """Get player from database
 
         Args:
@@ -109,8 +109,7 @@ class QueryDB:
         """
         try:
             return self.db_client.session.query(Player).\
-                filter(Player.first_name == first_name).\
-                filter(Player.last_name == last_name).\
+                filter(Player.name == name).\
                 filter(Player.dob == dob).one_or_none()
         except MultipleResultsFound:
             raise Exception("Multiple instances of same player found.")

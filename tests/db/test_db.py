@@ -84,19 +84,15 @@ class TestQueryDB:
         return QueryDB(db_client)
 
     def test_get_player(self, query_db, sample_player):
-        fname, lname, dob = "Tom", "Jones", datetime.date(2000, 1, 1)
-        player = query_db.get_player(sample_player.first_name, sample_player.last_name, sample_player.dob)
+        player = query_db.get_player(sample_player.name, sample_player.dob)
 
-        assert player.first_name == fname
-        assert player.last_name == lname
-        assert player.dob == dob
-        assert query_db.get_player("Test", "Player", datetime.date.today()) is None
+        assert player == sample_player
+        assert query_db.get_player("Test Player", datetime.date.today()) is None
 
     def test_get_tournament(self, query_db, sample_tournament):
         tournament = query_db.get_tournament(sample_tournament.name, sample_tournament.start_date)
 
-        assert tournament.name == sample_tournament.name
-        assert tournament.start_date == sample_tournament.start_date
+        assert tournament == sample_tournament
         assert query_db.get_tournament("Test", datetime.date.today()) is None
 
     def test_get_game(self, query_db, sample_tournament, sample_player):
