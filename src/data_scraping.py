@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .constants import PLAYER_URL, WTA_URL, ITF_URL
+from .constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL
 
 
 def get_raw_players(n_players: int = None) -> pd.DataFrame:
@@ -38,8 +38,8 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
             new_wta = pd.read_csv(WTA_URL.format(year), encoding="ISO-8859-1")
             new_itf = pd.read_csv(ITF_URL.format(year), encoding="ISO-8859-1")
 
-            new_wta['source'] = 'W'
-            new_itf['source'] = 'I'
+            new_wta[SOURCE_COL] = 'W'
+            new_itf[SOURCE_COL] = 'I'
 
             if isinstance(data, pd.DataFrame):
                 data = data.append(new_wta, ignore_index=True)
