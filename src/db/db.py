@@ -101,6 +101,9 @@ class QueryDB:
             last_name (str): player's last name
             dob (datetime): player's date of birth
 
+        Raises:
+            Exception: If multiple results found
+
         Returns:
             Player: instance of queried player
         """
@@ -119,6 +122,9 @@ class QueryDB:
             name (str): tournament name
             start_date (datetime): tournament start date
 
+        Raises:
+            Exception: If multiple results found
+
         Returns:
             Tournament: instance of queried tournamnet
         """
@@ -130,6 +136,19 @@ class QueryDB:
             raise Exception("Multiple instances of same tournament found.")
 
     def get_game(self, tournament: Tournament, w_player: Player, l_player: Player) -> _Game:
+        """Get game from database
+
+        Args:
+            tournament (Tournament): tournament object
+            w_player (Player): winning player object
+            l_player (Player): loseing player object
+
+        Raises:
+            Exception: If multiple results found
+
+        Returns:
+            _Game: instance of queried game
+        """
         try:
             return self.db_client.session.query(_Game).\
                 filter(_Game.tournament == tournament).\
