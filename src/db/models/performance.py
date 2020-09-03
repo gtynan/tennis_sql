@@ -20,7 +20,5 @@ class Performance(BASE):
     serve_games = Column(Integer)
     break_points_faced = Column(Integer)
     break_points_saved = Column(Integer)
-    player_rank = Column(Integer)
-    player_points = Column(Integer)
 
     player = relationship("Player", foreign_keys=[player_id])
