@@ -1,9 +1,12 @@
-from typing import Tuple
+from typing import Tuple, List
 import pandas as pd
 from datetime import datetime
 
+from .constants import SOURCE_COL
 from .db.models.player import Player
 from .db.models.tournament import Tournament
+from .db.models.performance import Performance
+from .db.models.game import _Game, WTA, ITF
 
 
 def format_player(row: object, fname: str = 'X', lname: str = 'X.1', nationality: str = 'UNK', dob: str = '19000000', hand: str = 'U') -> Player:
@@ -46,3 +49,40 @@ def format_tournament(row: object, name: str = 'tourney_name', surface: str = 's
                       draw_size=row[draw_size],
                       level=row[level],
                       start_date=datetime.strptime(str(row[start_date]), '%Y%m%d'))
+
+
+def format_game(row: object, tournament: Tournament, w_player: Player, l_player: Player, source: str = SOURCE_COL, round: str = 'round', score: str = 'score',
+                performance_cols: List[str] = ['ace', 'df', 'svpt', '1stIn', '1stWon', '2ndWon', 'SvGms', 'bpFaced', 'bpSaved'],
+                w_prefix: str = 'w_', l_prefix: str = 'l_') -> _Game:
+
+    w_performance = _format_performance(row, w_player, *[w_prefix + col for col in performance_cols])
+    l_performance = _format_performance(row, l_player, *[l_prefix + col for col in performance_cols])
+
+    game = _Game(round=row[round],
+                 score=row[score],
+                 tournament=tournament,
+                 w_performance=w_performance,
+                 l_performance=l_performance)
+
+    # cast to child
+    if row[source] == 'W':
+        game.__class__ = WTA
+    else:
+        game.__class__ = ITF
+    return game
+
+
+def _format_performance(row: object, player: Player,  aces: str, double_faults: str, serve_points: str,
+                        f_serve_in: str, f_serve_won: str, s_serve_won: str, serve_games: str, b_points_faced: str,
+                        b_points_saved: str) -> Performance:
+
+    return Performance(aces=row[aces],
+                       double_faults=row[double_faults],
+                       serve_points=row[serve_points],
+                       first_serve_in=row[f_serve_in],
+                       first_serve_won=row[f_serve_won],
+                       second_serve_won=row[s_serve_won],
+                       serve_games=row[serve_games],
+                       break_points_faced=row[b_points_faced],
+                       break_points_saved=row[b_points_saved],
+                       player=player)
