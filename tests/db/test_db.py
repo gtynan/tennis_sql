@@ -58,8 +58,8 @@ class TestCommandDB:
             filter(Tournament.start_date == sample_tournament.start_date).one()
 
     def test_add_game(self, db_client, command_db, sample_player, sample_tournament):
-        w_performance = Performance(seed=2, player=sample_player)
-        l_performance = Performance(seed=3, player=sample_player)
+        w_performance = Performance(player=sample_player)
+        l_performance = Performance(player=sample_player)
 
         game = WTA(tournament=sample_tournament, w_performance=w_performance, l_performance=l_performance)
 
@@ -79,7 +79,7 @@ class TestCommandDB:
 
 class TestQueryDB:
 
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope='class')
     def query_db(self, db_client) -> QueryDB:
         return QueryDB(db_client)
 

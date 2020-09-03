@@ -11,8 +11,6 @@ class Performance(BASE):
 
     player_id = Column(Integer, ForeignKey(f'player.id'))
 
-    seed = Column(Integer)
-    entry = Column(String(50))
     aces = Column(Integer)
     double_faults = Column(Integer)
     serve_points = Column(Integer)
