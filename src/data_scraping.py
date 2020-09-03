@@ -31,7 +31,9 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
         raw dataframe of games
     '''
     if n_games:
-        return pd.read_csv(WTA_URL.format(year_to), encoding="ISO-8859-1", nrows=n_games)
+        data = pd.read_csv(WTA_URL.format(year_to), encoding="ISO-8859-1", nrows=n_games)
+        data[SOURCE_COL] = 'W'
+        return data
     else:
         data = None
         for year in range(year_from, year_to + 1):
