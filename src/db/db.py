@@ -1,6 +1,8 @@
 from typing import Union
 from datetime import datetime
+import numpy as np
 
+from sqlalchemy import event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -41,6 +43,14 @@ class DBClient:
         self._Session = sessionmaker(bind=self.engine)
         # session object to communicate with db
         self.session = self._Session()
+
+        # some values are mapped to numpy int so need to convert
+        # https://github.com/worldveil/dejavu/issues/142
+        event.listen(self.engine, "before_cursor_execute", DBClient.add_own_encoders)
+
+    @staticmethod
+    def add_own_encoders(conn, cursor, query, *args):
+        cursor.connection.encoders[np.int64] = lambda value, encoders: int(value)
 
 
 class CommandDB:

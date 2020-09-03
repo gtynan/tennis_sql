@@ -70,12 +70,6 @@ class TestCommandDB:
             filter(WTA.w_performance == w_performance).\
             filter(WTA.l_performance == l_performance).one()
 
-        # only 1 expected as fixture instance means same instance across methods
-        assert db_client.session.query(Tournament).count() == 1
-        assert db_client.session.query(Player).count() == 1
-
-        assert db_client.session.query(Performance).count() == 2
-
 
 class TestQueryDB:
 
