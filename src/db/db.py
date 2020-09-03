@@ -9,6 +9,8 @@ from ._secrets import db_config
 from .models.base import BASE
 from .models.player import Player
 from .models.tournament import Tournament
+from .models.performance import Performance
+from .models.game import _Game
 
 
 class DBClient:
@@ -49,11 +51,11 @@ class CommandDB:
     def __init__(self, db_client: DBClient) -> None:
         self.db_client = db_client
 
-    def _add_instance(self, instance: Union[Player, Tournament]):
+    def _add_instance(self, instance: BASE):
         """Handles all single instance additions to the database
 
         Args:
-            instance (Union[Player, Tournament]): instance of any db_model
+            instance (BASE): instance of db_table that inherits BASE
         """
         self.db_client.session.add(instance)
         self.db_client.session.commit()
@@ -73,6 +75,14 @@ class CommandDB:
             tournament (Tournament): instance of tournament to add
         """
         self._add_instance(tournament)
+
+    def add_game(self, game: _Game) -> None:
+        """Add game to database
+
+        Args:
+            game (_Game): instance of game
+        """
+        self._add_instance(game)
 
 
 class QueryDB:
@@ -118,3 +128,12 @@ class QueryDB:
                 filter(Tournament.start_date == start_date).one_or_none()
         except MultipleResultsFound:
             raise Exception("Multiple instances of same tournament found.")
+
+    def get_game(self, tournament: Tournament, w_player: Player, l_player: Player) -> _Game:
+        try:
+            return self.db_client.session.query(_Game).\
+                filter(_Game.tournament == tournament).\
+                filter(_Game.w_performance.has(Performance.player == w_player)).\
+                filter(_Game.l_performance.has(Performance.player == l_player)).one_or_none()
+        except MultipleResultsFound:
+            raise Exception("Multiple instances of same game found.")

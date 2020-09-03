@@ -20,11 +20,11 @@ class _Game(BASE):
     w_performance = relationship("Performance", foreign_keys=[w_performance_id])
     l_performance = relationship("Performance", foreign_keys=[l_performance_id])
 
-    type = Column(String(50))
+    circuit = Column(String(50))
 
     __mapper_args__ = {
         'polymorphic_identity': 'game',
-        'polymorphic_on': type
+        'polymorphic_on': circuit
     }
 
 
