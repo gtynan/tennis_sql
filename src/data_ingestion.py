@@ -1,17 +1,44 @@
+from typing import Union
 import pandas as pd
-import numpy as np
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
+
+from .db.db import DBClient, CommandDB, QueryDB
+from .data_formatting import format_tournament, format_game
+from .data_cleaning import infer_dob, to_datetime
 
 
-def _infer_dob(age: float, t_date: datetime) -> datetime:
-    """Convert age as a decimal to date of birth using tournament start date
+def add_game(command_db: CommandDB, query_db, game: pd.Series) -> None:
+    w_player = query_db.get_player(game['winner_name'],
+                                   game['winner_age'])
+    l_player = query_db.get_player(game['loser_name'],
+                                   game['loser_age'])
 
-    Args:
-        age (float): player's current age
-        t_date (datetime): tournament start date
+    # players are added seperately if they are not present game will not be added
+    assert (w_player is not None) & (l_player is not None)
 
-    Returns:
-        datetime: player's dob
-    """
-    return t_date - relativedelta(days=age*365.24)
+    tournament = query_db.get_tournament(game['tourney_name'],
+                                         game['tourney_date'])
+
+    if tournament is None:
+        tournament = format_tournament(game)
+
+    f_game = format_game(game, tournament, w_player, l_player)
+
+    command_db.add_game(f_game)
+
+
+def add_games(db_client: DBClient, games: Union[pd.DataFrame, pd.Series]) -> None:
+    command_db = CommandDB(db_client)
+    query_db = QueryDB(db_client)
+
+    games = games.copy(deep=True)
+
+    # data cleaning
+    games['tourney_date'] = to_datetime(games['tourney_date'])
+    games['winner_age'] = infer_dob('winner_age', 'tourney_date', games)
+    games['loser_age'] = infer_dob('loser_age', 'tourney_date', games)
+
+    try:
+        for _, game in games.iterrows():
+            add_game(command_db, query_db, game)
+    except AttributeError:
+        add_game(command_db, query_db, games)
