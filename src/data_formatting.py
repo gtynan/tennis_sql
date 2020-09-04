@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 
 from .constants import SOURCE_COL
+from .data_cleaning import to_datetime
 from .db.models.player import Player
 from .db.models.tournament import Tournament
 from .db.models.performance import Performance
@@ -13,7 +14,7 @@ def format_player(row: pd.Series, fname: str = 'X', lname: str = 'X.1', national
     """Given row from jeff sackmans player csv formats to player object
 
     Args:
-        row (pd.Series): DataFrame row 
+        row (pd.Series): DataFrame row
         fname (str, optional): column containing first name. Defaults to 'X'.
         lname (str, optional): column containing last name. Defaults to 'X.1'.
         nationality (str, optional): column containing nationality. Defaults to 'UNK'.
@@ -26,7 +27,7 @@ def format_player(row: pd.Series, fname: str = 'X', lname: str = 'X.1', national
     return Player(first_name=row[fname],
                   last_name=row[lname],
                   nationality=row[nationality],
-                  dob=datetime.strptime(str(row[dob]), '%Y%m%d'),
+                  dob=to_datetime(row[dob]),
                   hand=row[hand])
 
 
@@ -48,7 +49,7 @@ def format_tournament(row: pd.Series, name: str = 'tourney_name', surface: str =
                       surface=row[surface],
                       draw_size=row[draw_size],
                       level=row[level],
-                      start_date=datetime.strptime(str(row[start_date]), '%Y%m%d'))
+                      start_date=to_datetime(row[start_date]))
 
 
 def format_game(row: pd.Series, tournament: Tournament, w_player: Player, l_player: Player, source: str = SOURCE_COL, round: str = 'round', score: str = 'score',
