@@ -58,17 +58,17 @@ def format_game(row: object, tournament: Tournament, w_player: Player, l_player:
     w_performance = _format_performance(row, w_player, *[w_prefix + col for col in performance_cols])
     l_performance = _format_performance(row, l_player, *[l_prefix + col for col in performance_cols])
 
-    game = _Game(round=row[round],
-                 score=row[score],
-                 tournament=tournament,
-                 w_performance=w_performance,
-                 l_performance=l_performance)
+    game = WTA(round=row[round],
+               score=row[score],
+               tournament=tournament,
+               w_performance=w_performance,
+               l_performance=l_performance)
 
-    # cast to child
-    if row[source] == 'W':
-        game.__class__ = WTA
-    else:
+    # cast to ITF
+    if row[source] != 'W':
         game.__class__ = ITF
+        game.circuit = ITF.__mapper_args__['polymorphic_identity']
+
     return game
 
 
