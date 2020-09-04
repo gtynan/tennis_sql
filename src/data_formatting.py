@@ -9,11 +9,11 @@ from .db.models.performance import Performance
 from .db.models.game import _Game, WTA, ITF
 
 
-def format_player(row: object, fname: str = 'X', lname: str = 'X.1', nationality: str = 'UNK', dob: str = '19000000', hand: str = 'U') -> Player:
+def format_player(row: pd.Series, fname: str = 'X', lname: str = 'X.1', nationality: str = 'UNK', dob: str = '19000000', hand: str = 'U') -> Player:
     """Given row from jeff sackmans player csv formats to player object
 
     Args:
-        row (object): DataFrame row 
+        row (pd.Series): DataFrame row 
         fname (str, optional): column containing first name. Defaults to 'X'.
         lname (str, optional): column containing last name. Defaults to 'X.1'.
         nationality (str, optional): column containing nationality. Defaults to 'UNK'.
@@ -30,11 +30,11 @@ def format_player(row: object, fname: str = 'X', lname: str = 'X.1', nationality
                   hand=row[hand])
 
 
-def format_tournament(row: object, name: str = 'tourney_name', surface: str = 'surface', draw_size: str = 'draw_size', level: str = 'tourney_level', start_date: str = 'tourney_date') -> Tournament:
+def format_tournament(row: pd.Series, name: str = 'tourney_name', surface: str = 'surface', draw_size: str = 'draw_size', level: str = 'tourney_level', start_date: str = 'tourney_date') -> Tournament:
     """Given row from jeff sackmans matches csv formats to tournament object
 
     Args:
-        row (object): DataFrame row
+        row (pd.Series): DataFrame row
         name (str, optional): column containing tournament name. Defaults to 'tourney_name'.
         surface (str, optional): column containing surface type. Defaults to 'surface'.
         draw_size (str, optional): column containing draw size. Defaults to 'draw_size'.
@@ -51,13 +51,13 @@ def format_tournament(row: object, name: str = 'tourney_name', surface: str = 's
                       start_date=datetime.strptime(str(row[start_date]), '%Y%m%d'))
 
 
-def format_game(row: object, tournament: Tournament, w_player: Player, l_player: Player, source: str = SOURCE_COL, round: str = 'round', score: str = 'score',
+def format_game(row: pd.Series, tournament: Tournament, w_player: Player, l_player: Player, source: str = SOURCE_COL, round: str = 'round', score: str = 'score',
                 performance_cols: List[str] = ['ace', 'df', 'svpt', '1stIn', '1stWon', '2ndWon', 'SvGms', 'bpFaced', 'bpSaved'],
                 w_prefix: str = 'w_', l_prefix: str = 'l_') -> _Game:
     """Given row from jeff sackmans matches csv formats to game object
 
     Args:
-        row (object): DataFrame row
+        row (pd.Series): DataFrame row
         tournament (Tournament): tournament instance in row
         w_player (Player): winning player instance in row
         l_player (Player): losing player instance in row
@@ -89,7 +89,7 @@ def format_game(row: object, tournament: Tournament, w_player: Player, l_player:
     return game
 
 
-def _format_performance(row: object, player: Player,  aces: str, double_faults: str, serve_points: str,
+def _format_performance(row: pd.Series, player: Player,  aces: str, double_faults: str, serve_points: str,
                         f_serve_in: str, f_serve_won: str, s_serve_won: str, serve_games: str, b_points_faced: str,
                         b_points_saved: str) -> Performance:
     """Should only be called by format_game as performances do not have a uniqueness and are only relevant relating to a game
