@@ -1,6 +1,8 @@
 from typing import Union
 from datetime import datetime
+import numpy as np
 
+from sqlalchemy import event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -19,7 +21,7 @@ class DBClient:
                  db_user: str = db_config['user'],
                  db_pwd: str = db_config['password'],
                  db_host: str = db_config['host'],
-                 db_port: str = db_config['port'],
+                 db_port: int = db_config['port'],
                  db_name: str = db_config['database']) -> None:
         """Create connection to database
 
@@ -41,6 +43,14 @@ class DBClient:
         self._Session = sessionmaker(bind=self.engine)
         # session object to communicate with db
         self.session = self._Session()
+
+        # some values are mapped to numpy int so need to convert
+        # https://github.com/worldveil/dejavu/issues/142
+        event.listen(self.engine, "before_cursor_execute", DBClient.add_own_encoders)
+
+    @staticmethod
+    def add_own_encoders(conn, cursor, query, *args):
+        cursor.connection.encoders[np.int64] = lambda value, encoders: int(value)
 
 
 class CommandDB:
@@ -93,7 +103,7 @@ class QueryDB:
     def __init__(self, db_client: DBClient) -> None:
         self.db_client = db_client
 
-    def get_player(self, first_name: str, last_name: str, dob: datetime) -> Player:
+    def get_player(self, name: str, dob: datetime) -> Player:
         """Get player from database
 
         Args:
@@ -109,8 +119,7 @@ class QueryDB:
         """
         try:
             return self.db_client.session.query(Player).\
-                filter(Player.first_name == first_name).\
-                filter(Player.last_name == last_name).\
+                filter(Player.name == name).\
                 filter(Player.dob == dob).one_or_none()
         except MultipleResultsFound:
             raise Exception("Multiple instances of same player found.")

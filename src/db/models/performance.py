@@ -11,8 +11,6 @@ class Performance(BASE):
 
     player_id = Column(Integer, ForeignKey(f'player.id'))
 
-    seed = Column(Integer)
-    entry = Column(String(50))
     aces = Column(Integer)
     double_faults = Column(Integer)
     serve_points = Column(Integer)
@@ -22,7 +20,5 @@ class Performance(BASE):
     serve_games = Column(Integer)
     break_points_faced = Column(Integer)
     break_points_saved = Column(Integer)
-    player_rank = Column(Integer)
-    player_points = Column(Integer)
 
     player = relationship("Player", foreign_keys=[player_id])

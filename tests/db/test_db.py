@@ -58,8 +58,8 @@ class TestCommandDB:
             filter(Tournament.start_date == sample_tournament.start_date).one()
 
     def test_add_game(self, db_client, command_db, sample_player, sample_tournament):
-        w_performance = Performance(seed=2, player=sample_player)
-        l_performance = Performance(seed=3, player=sample_player)
+        w_performance = Performance(player=sample_player)
+        l_performance = Performance(player=sample_player)
 
         game = WTA(tournament=sample_tournament, w_performance=w_performance, l_performance=l_performance)
 
@@ -70,33 +70,23 @@ class TestCommandDB:
             filter(WTA.w_performance == w_performance).\
             filter(WTA.l_performance == l_performance).one()
 
-        # only 1 expected as fixture instance means same instance across methods
-        assert db_client.session.query(Tournament).count() == 1
-        assert db_client.session.query(Player).count() == 1
-
-        assert db_client.session.query(Performance).count() == 2
-
 
 class TestQueryDB:
 
-    @pytest.fixture(scope='module')
+    @pytest.fixture(scope='class')
     def query_db(self, db_client) -> QueryDB:
         return QueryDB(db_client)
 
     def test_get_player(self, query_db, sample_player):
-        fname, lname, dob = "Tom", "Jones", datetime.date(2000, 1, 1)
-        player = query_db.get_player(sample_player.first_name, sample_player.last_name, sample_player.dob)
+        player = query_db.get_player(sample_player.name, sample_player.dob)
 
-        assert player.first_name == fname
-        assert player.last_name == lname
-        assert player.dob == dob
-        assert query_db.get_player("Test", "Player", datetime.date.today()) is None
+        assert player == sample_player
+        assert query_db.get_player("Test Player", datetime.date.today()) is None
 
     def test_get_tournament(self, query_db, sample_tournament):
         tournament = query_db.get_tournament(sample_tournament.name, sample_tournament.start_date)
 
-        assert tournament.name == sample_tournament.name
-        assert tournament.start_date == sample_tournament.start_date
+        assert tournament == sample_tournament
         assert query_db.get_tournament("Test", datetime.date.today()) is None
 
     def test_get_game(self, query_db, sample_tournament, sample_player):
