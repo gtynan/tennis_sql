@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date
-from sqlalchemy.orm import column_property
+from sqlalchemy.ext.hybrid import hybrid_property
 from .base import BASE
 
 
@@ -14,4 +14,6 @@ class Player(BASE):
     dob = Column(Date)
     hand = Column(String(50))
 
-    name = column_property(first_name + " " + last_name)
+    @hybrid_property
+    def name(self):
+        return self.first_name + " " + self.last_name
