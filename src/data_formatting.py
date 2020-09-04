@@ -54,6 +54,23 @@ def format_tournament(row: object, name: str = 'tourney_name', surface: str = 's
 def format_game(row: object, tournament: Tournament, w_player: Player, l_player: Player, source: str = SOURCE_COL, round: str = 'round', score: str = 'score',
                 performance_cols: List[str] = ['ace', 'df', 'svpt', '1stIn', '1stWon', '2ndWon', 'SvGms', 'bpFaced', 'bpSaved'],
                 w_prefix: str = 'w_', l_prefix: str = 'l_') -> _Game:
+    """Given row from jeff sackmans matches csv formats to game object
+
+    Args:
+        row (object): DataFrame row
+        tournament (Tournament): tournament instance in row
+        w_player (Player): winning player instance in row
+        l_player (Player): losing player instance in row
+        source (str, optional): column denoting circuit source (W = WTA, I = ITF). Defaults to SOURCE_COL.
+        round (str, optional): column containing match round. Defaults to 'round'.
+        score (str, optional): column containing match score. Defaults to 'score'.
+        performance_cols (List[str], optional): list of columns relating to performance (sans prefix) should match _format_performance order. Defaults to ['ace', 'df', 'svpt', '1stIn', '1stWon', '2ndWon', 'SvGms', 'bpFaced', 'bpSaved'].
+        w_prefix (str, optional): winning player prefix on performance cols. Defaults to 'w_'.
+        l_prefix (str, optional): losing player prefix on performance cols. Defaults to 'l_'.
+
+    Returns:
+        _Game: game instance of row
+    """
 
     w_performance = _format_performance(row, w_player, *[w_prefix + col for col in performance_cols])
     l_performance = _format_performance(row, l_player, *[l_prefix + col for col in performance_cols])
@@ -75,7 +92,8 @@ def format_game(row: object, tournament: Tournament, w_player: Player, l_player:
 def _format_performance(row: object, player: Player,  aces: str, double_faults: str, serve_points: str,
                         f_serve_in: str, f_serve_won: str, s_serve_won: str, serve_games: str, b_points_faced: str,
                         b_points_saved: str) -> Performance:
-
+    """Should only be called by format_game as performances do not have a uniqueness and are only relevant relating to a game
+    """
     return Performance(aces=row[aces],
                        double_faults=row[double_faults],
                        serve_points=row[serve_points],
