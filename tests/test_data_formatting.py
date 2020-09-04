@@ -38,9 +38,8 @@ def test_format_tournament(sample_games):
 
 @pytest.mark.slow
 def test_format_game(sample_players, sample_games):
-    print(sample_games)
     w_player, l_player = format_player(sample_players.iloc[0]), format_player(sample_players.iloc[1])
-    sample_game = sample_games.iloc[0]
+    sample_game = sample_games.iloc[0].copy(deep=True)
     tournament = format_tournament(sample_game)
 
     game = format_game(sample_game, tournament, w_player, l_player)
