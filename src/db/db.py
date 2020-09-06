@@ -58,8 +58,8 @@ class CommandDB:
     Write side
     '''
 
-    def __init__(self, db_client: DBClient) -> None:
-        self.db_client = db_client
+    def __init__(self, session: Session) -> None:
+        self.session = session
 
     def _add_instance(self, instance: BASE):
         """Handles all single instance additions to the database
@@ -67,8 +67,8 @@ class CommandDB:
         Args:
             instance (BASE): instance of db_table that inherits BASE
         """
-        self.db_client.session.add(instance)
-        self.db_client.session.commit()
+        self.session.add(instance)
+        self.session.commit()
 
     def add_player(self, player: Player) -> None:
         """Add player to database
@@ -100,8 +100,8 @@ class QueryDB:
     Read side
     '''
 
-    def __init__(self, db_client: DBClient) -> None:
-        self.db_client = db_client
+    def __init__(self, session: Session) -> None:
+        self.session = session
 
     def get_player(self, name: str, dob: datetime) -> Player:
         """Get player from database
@@ -118,7 +118,7 @@ class QueryDB:
             Player: instance of queried player
         """
         try:
-            return self.db_client.session.query(Player).\
+            return self.session.query(Player).\
                 filter(Player.name == name).\
                 filter(Player.dob == dob).one_or_none()
         except MultipleResultsFound:
@@ -138,7 +138,7 @@ class QueryDB:
             Tournament: instance of queried tournamnet
         """
         try:
-            return self.db_client.session.query(Tournament).\
+            return self.session.query(Tournament).\
                 filter(Tournament.name == name).\
                 filter(Tournament.start_date == start_date).one_or_none()
         except MultipleResultsFound:
@@ -159,7 +159,7 @@ class QueryDB:
             _Game: instance of queried game
         """
         try:
-            return self.db_client.session.query(_Game).\
+            return self.session.query(_Game).\
                 filter(_Game.tournament == tournament).\
                 filter(_Game.w_performance.has(Performance.player == w_player)).\
                 filter(_Game.l_performance.has(Performance.player == l_player)).one_or_none()

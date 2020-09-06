@@ -33,7 +33,7 @@ class TestCommandDB:
 
     @pytest.fixture(scope='class')
     def command_db(self, db_client) -> CommandDB:
-        return CommandDB(db_client)
+        return CommandDB(db_client.session)
 
     def test_add_player(self, db_client, command_db, sample_player):
         command_db.add_player(sample_player)
@@ -75,7 +75,7 @@ class TestQueryDB:
 
     @pytest.fixture(scope='class')
     def query_db(self, db_client) -> QueryDB:
-        return QueryDB(db_client)
+        return QueryDB(db_client.session)
 
     def test_get_player(self, query_db, sample_player):
         player = query_db.get_player(sample_player.name, sample_player.dob)

@@ -23,13 +23,13 @@ def test_add_games(db_client, sample_players, sample_games):
     sample_game['loser_name'] = l_player.name
     sample_game['loser_age'] = (t_date - l_player.dob).days/365.24
 
-    command_db = CommandDB(db_client)
+    command_db = CommandDB(db_client.session)
     command_db.add_player(w_player)
     command_db.add_player(l_player)
 
-    add_games(db_client, sample_game)
+    add_games(db_client.session, sample_game)
 
-    query_db = QueryDB(db_client)
+    query_db = QueryDB(db_client.session)
     tournament = query_db.get_tournament(sample_game['tourney_name'], t_date)
     game = query_db.get_game(tournament, w_player, l_player)
 
