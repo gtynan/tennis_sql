@@ -1,5 +1,6 @@
 from typing import Union
 import pandas as pd
+from sqlalchemy.orm import Session
 
 from .db.db import DBClient, CommandDB, QueryDB
 from .data_formatting import format_tournament, format_game
@@ -26,9 +27,9 @@ def add_game(command_db: CommandDB, query_db, game: pd.Series) -> None:
     command_db.add_game(f_game)
 
 
-def add_games(db_client: DBClient, games: Union[pd.DataFrame, pd.Series]) -> None:
-    command_db = CommandDB(db_client)
-    query_db = QueryDB(db_client)
+def add_games(session: Session, games: Union[pd.DataFrame, pd.Series]) -> None:
+    command_db = CommandDB(session)
+    query_db = QueryDB(session)
 
     games = games.copy(deep=True)
 
