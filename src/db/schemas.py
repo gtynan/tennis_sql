@@ -20,6 +20,9 @@ class Game:
     w_performance_id: int
     l_performance_id: int
 
+    class Config:
+        orm_mode = True
+
 
 class PerformanceBase(BaseModel):
     aces: int
@@ -41,6 +44,9 @@ class PerformanceCreate(PerformanceBase):
 class Performance(PerformanceBase):
     id: int
     player_id: int
+
+    class Config:
+        orm_mode = True
 
 
 class PlayerBase(BaseModel):
