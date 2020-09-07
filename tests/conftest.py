@@ -1,7 +1,7 @@
 import pytest
 
 from src.db.db import DBClient
-from src.db.models.base import BASE
+from src.db.models import Base
 from src.data_scraping import get_raw_players, get_raw_games
 
 
@@ -15,7 +15,7 @@ def db_client():
     yield db_client
     # teardown delete all `Base` created test_db tables
     db_client.session.close()
-    for table in reversed(BASE.metadata.sorted_tables):
+    for table in reversed(Base.metadata.sorted_tables):
         table.drop(db_client.engine)
 
 

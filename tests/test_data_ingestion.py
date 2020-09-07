@@ -4,7 +4,7 @@ from src.data_cleaning import to_datetime
 from src.data_ingestion import add_games
 from src.data_formatting import format_player
 from src.db.db import CommandDB, QueryDB
-from src.db.models.game import WTA
+from src.db.models import WTA
 
 # TODO expand tests
 

@@ -8,11 +8,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ._secrets import db_config
-from .models.base import BASE
-from .models.player import Player
-from .models.tournament import Tournament
-from .models.performance import Performance
-from .models.game import _Game
+from .models import Base, Player, Tournament, Performance, _Game
+
+from .schemas import PlayerCreate
 
 
 class DBClient:
@@ -37,7 +35,7 @@ class DBClient:
         self.engine = create_engine(connection_str, echo=True)
 
         # any class inheriting Base that does not have a table in the db will have one generated for them
-        BASE.metadata.create_all(self.engine)
+        Base.metadata.create_all(self.engine)
 
         # creates session objects if more needed (used in tests mainly)
         self._Session = sessionmaker(bind=self.engine)
@@ -61,7 +59,7 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _add_instance(self, instance: BASE):
+    def _add_instance(self, instance: Base):
         """Handles all single instance additions to the database
 
         Args:
@@ -70,13 +68,13 @@ class CommandDB:
         self.session.add(instance)
         self.session.commit()
 
-    def add_player(self, player: Player) -> None:
+    def add_player(self, player: PlayerCreate) -> None:
         """Add player to database
 
         Args:
             player (Player): instance of player to add
         """
-        self._add_instance(player)
+        self._add_instance(Player(**player.dict()))
 
     def add_tournament(self, tournament: Tournament) -> None:
         """Add tournament to database

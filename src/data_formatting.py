@@ -4,10 +4,7 @@ from datetime import datetime
 
 from .constants import SOURCE_COL
 from .data_cleaning import to_datetime
-from .db.models.player import Player
-from .db.models.tournament import Tournament
-from .db.models.performance import Performance
-from .db.models.game import _Game, WTA, ITF
+from .db.models import Player, Tournament, Performance, _Game, WTA, ITF
 
 
 def format_player(row: pd.Series, fname: str = 'X', lname: str = 'X.1', nationality: str = 'UNK', dob: str = '19000000', hand: str = 'U') -> Player:

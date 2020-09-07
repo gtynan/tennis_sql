@@ -3,9 +3,7 @@ from datetime import datetime
 from inspect import signature
 
 from src.data_formatting import format_player, format_tournament, format_game, _format_performance
-from src.db.models.player import Player
-from src.db.models.tournament import Tournament
-from src.db.models.game import WTA, ITF
+from src.db.models import Player, Tournament, WTA, ITF
 from src.constants import SOURCE_COL
 
 
