@@ -98,10 +98,29 @@ class CommandDB:
         return self._add_instance(tournament)
 
     def add_game(self, game: schemas.GameCreate, tournament_id: int) -> int:
+        """Add game to database
+
+        Args:
+            game (schemas.GameCreate): instance of game to add
+            tournament_id (int): id of tournament game played in
+
+        Returns:
+            int: game id of added game
+        """
         game = models.Game(**game.dict(), tournament_id=tournament_id)
         return self._add_instance(game)
 
     def add_performance(self, performance: schemas.PerformanceCreate, player_id: int, game_id: int) -> int:
+        """Add performance to database
+
+        Args:
+            performance (schemas.PerformanceCreate): instance of performance to add
+            player_id (int): id of player who the performance relates to 
+            game_id (int): id of game performance relates ot 
+
+        Returns:
+            int: performance id of added performance
+        """
         if performance.won:
             performance = models.WPerformance(**performance.dict(), player_id=player_id, game_id=game_id)
         else:
