@@ -38,10 +38,8 @@ class TestCommandDB:
     def test_add_player(self, db_client, command_db, sample_player):
         # convert to pydantic object to validate insert schema
         player = schemas.PlayerCreate.from_orm(sample_player)
-        # function being tested
         player_id = command_db.add_player(player)
 
-        # retrieve added player from db
         queried_player = db_client.session.query(models.Player).\
             filter(models.Player.id == player_id).one()
         # ensure matches expected schema (will raise exception otherwise)
@@ -57,10 +55,8 @@ class TestCommandDB:
     def test_add_tournament(self, db_client, command_db, sample_tournament):
         # convert to pydantic object to validate insert schema
         tournament = schemas.TournamentCreate.from_orm(sample_tournament)
-        # function being tested
         tournament_id = command_db.add_tournament(tournament)
 
-        # retrieve added tournament from db
         queried_tournament = db_client.session.query(models.Tournament).\
             filter(models.Tournament.id == tournament_id).one()
         # ensure matches expected schema (will raise exception otherwise)
@@ -74,19 +70,64 @@ class TestCommandDB:
 
     def test_add_game(self, db_client, command_db, sample_tournament):
         tournament_id = db_client.session.query(models.Tournament).\
-            filter(models.Tournament.name == sample_tournament.name).\
-            filter(models.Tournament.start_date == sample_tournament.start_date).one().id
+            filter(models.Tournament.name == sample_tournament.name).one().id
 
-        game = schemas.GameCreate(score='6-0 6-0', round='R32')
-
+        game = schemas.GameCreate(score='6-0 6-0', round='R32', circuit=WTA_IDENTIFIER)
         game_id = command_db.add_game(game, tournament_id=tournament_id)
 
         queried_game = db_client.session.query(models.Game).\
             filter(models.Game.id == game_id).one()
-
+        # ensure matches expected schema (will raise exception otherwise)
         schemas.Game.from_orm(queried_game)
 
         assert queried_game.id == game_id
         assert queried_game.tournament_id == tournament_id
         assert queried_game.score == game.score
         assert queried_game.round == game.round
+        assert queried_game.circuit == game.circuit
+
+        # add game should update tournaments game thus ensure games accessible via tournament
+        queried_tournament = db_client.session.query(models.Tournament).\
+            filter(models.Tournament.id == tournament_id).first()
+        assert queried_tournament.games[0].id == queried_game.id
+
+    def test_add_performance(self, db_client, command_db, sample_tournament, sample_player):
+        # id's needed to create performance object
+        tournament_id = db_client.session.query(models.Tournament).\
+            filter(models.Tournament.name == sample_tournament.name).one().id
+        game_id = db_client.session.query(models.Game).\
+            filter(models.Game.tournament_id == tournament_id).one().id
+        player_id = db_client.session.query(models.Player).\
+            filter(models.Player.name == sample_player.name).\
+            filter(models.Player.dob == sample_player.dob).one().id
+
+        performance_id = command_db.add_performance(performance=schemas.PerformanceCreate(won=True),
+                                                    player_id=player_id, game_id=game_id)
+
+        queried_performance = db_client.session.query(models.WPerformance).\
+            filter(models.WPerformance.id == performance_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        schemas.Performance.from_orm(queried_performance)
+
+        assert queried_performance.player_id == player_id
+        assert queried_performance.game_id == game_id
+        assert queried_performance.won
+
+        # add performance, won=True should update games w_performance thus ensure games accessible via game
+        queried_game = db_client.session.query(models.Game).\
+            filter(models.Game.id == game_id).one()
+        assert queried_game.w_performance.id == queried_performance.id
+
+        # test LPerformance, won=False should create LPerformance  instance
+        performance_id = command_db.add_performance(performance=schemas.PerformanceCreate(won=False),
+                                                    player_id=player_id, game_id=game_id)
+
+        # query LPerformance table to ensure mapped correctly
+        queried_performance = db_client.session.query(models.LPerformance).\
+            filter(models.LPerformance.id == performance_id).one()
+        # ensure meets expected schema
+        schemas.Performance.from_orm(queried_performance)
+
+        assert queried_performance.player_id == player_id
+        assert queried_performance.game_id == game_id
+        assert ~queried_performance.won

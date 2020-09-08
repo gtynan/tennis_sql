@@ -101,6 +101,13 @@ class CommandDB:
         game = models.Game(**game.dict(), tournament_id=tournament_id)
         return self._add_instance(game)
 
+    def add_performance(self, performance: schemas.PerformanceCreate, player_id: int, game_id: int) -> int:
+        if performance.won:
+            performance = models.WPerformance(**performance.dict(), player_id=player_id, game_id=game_id)
+        else:
+            performance = models.LPerformance(**performance.dict(), player_id=player_id, game_id=game_id)
+        return self._add_instance(performance)
+
     # def add_game(self, game: schemas.GameCreate, tourney_id: int, w_performance_id: int, l_performance_id: int) -> None:
     #     """Add game to database
 

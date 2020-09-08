@@ -26,9 +26,8 @@ class Player(TableBase):
     dob = Column(DateTime)
     hand = Column(String(50))
 
-    # one player has many performances
-    # cascade all delete ensure when a player is deleted so is all their performances (helps with teardown of db)
-    # performances = relationship("Performance", backref='player', cascade="all, delete")
+    w_performances = relationship("WPerformance", back_populates='player')
+    l_performances = relationship("LPerformance", back_populates='player')
 
     @hybrid_property
     def name(self):
@@ -53,5 +52,37 @@ class Game(TableBase):
     tournament_id = Column(Integer, ForeignKey('tournament.id'))
     tournament = relationship("Tournament", back_populates='games')
 
+    w_performance = relationship("WPerformance", back_populates='game', uselist=False)
+    l_performance = relationship("LPerformance", back_populates='game', uselist=False)
+
     round = Column(String(50))
     score = Column(String(50))
+    circuit = Column(String(50))
+
+
+class Performance(TableBase):
+    __abstract__ = True
+    # TODO all performances cols ie ACE
+    won = Column(Boolean)
+
+
+class WPerformance(Performance):
+    __tablename__ = 'w_performance'
+
+    # ideally would be in performance table but can't have relationship in abstract class
+    player_id = Column(Integer, ForeignKey('player.id'))
+    player = relationship("Player", back_populates="w_performances")
+
+    game_id = Column(Integer, ForeignKey('game.id'))
+    game = relationship("Game", back_populates="w_performance")
+
+
+class LPerformance(Performance):
+    __tablename__ = 'l_performance'
+
+    # ideally would be in performance table but can't have relationship in abstract class
+    player_id = Column(Integer, ForeignKey('player.id'))
+    player = relationship("Player", back_populates="l_performances")
+
+    game_id = Column(Integer, ForeignKey('game.id'))
+    game = relationship("Game", back_populates="l_performance")

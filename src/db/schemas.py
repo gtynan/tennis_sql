@@ -28,6 +28,7 @@ class Player(PlayerBase):
 class GameBase(BaseModel):
     round: str
     score: str
+    circuit: str
 
     class Config:
         orm_mode = True
@@ -60,3 +61,20 @@ class TournamentCreate(TournamentBase):
 class Tournament(TournamentBase):
     id: int
     games: List[Game]
+
+
+class PerformanceBase(BaseModel):
+    won: bool
+
+
+class PerformanceCreate(PerformanceBase):
+    pass
+
+
+class Performance(PerformanceBase):
+    id: int
+    player_id: int
+    game_id: int
+
+    class Config:
+        orm_mode = True
