@@ -71,3 +71,22 @@ class TestCommandDB:
         assert queried_tournament.draw_size == tournament.draw_size
         assert queried_tournament.level == tournament.level
         assert queried_tournament.start_date == tournament.start_date
+
+    def test_add_game(self, db_client, command_db, sample_tournament):
+        tournament_id = db_client.session.query(models.Tournament).\
+            filter(models.Tournament.name == sample_tournament.name).\
+            filter(models.Tournament.start_date == sample_tournament.start_date).one().id
+
+        game = schemas.GameCreate(score='6-0 6-0', round='R32')
+
+        game_id = command_db.add_game(game, tournament_id=tournament_id)
+
+        queried_game = db_client.session.query(models.Game).\
+            filter(models.Game.id == game_id).one()
+
+        schemas.Game.from_orm(queried_game)
+
+        assert queried_game.id == game_id
+        assert queried_game.tournament.id == tournament_id
+        assert queried_game.score == game.score
+        assert queried_game.round == game.round

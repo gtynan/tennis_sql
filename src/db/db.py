@@ -97,6 +97,10 @@ class CommandDB:
         tournament = models.Tournament(**tournament.dict())
         return self._add_instance(tournament)
 
+    def add_game(self, game: schemas.GameCreate, tournament_id: int) -> int:
+        game = models.Game(**game.dict(), tournament_id=tournament_id)
+        return self._add_instance(game)
+
     # def add_game(self, game: schemas.GameCreate, tourney_id: int, w_performance_id: int, l_performance_id: int) -> None:
     #     """Add game to database
 

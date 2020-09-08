@@ -42,3 +42,20 @@ class TournamentCreate(TournamentBase):
 
 class Tournament(TournamentBase):
     id: int
+
+
+class GameBase(BaseModel):
+    round: str
+    score: str
+
+    class Config:
+        orm_mode = True
+
+
+class GameCreate(GameBase):
+    pass
+
+
+class Game(GameBase):
+    id: int
+    tournament: Tournament

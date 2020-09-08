@@ -43,3 +43,15 @@ class Tournament(TableBase):
     draw_size = Column(Integer)
     level = Column(String(50))
     start_date = Column(DateTime)
+
+    games = relationship("Game", back_populates='tournament')
+
+
+class Game(TableBase):
+    __tablename__ = 'game'
+
+    tournament_id = Column(Integer, ForeignKey('tournament.id'))
+    tournament = relationship("Tournament", back_populates='games')
+
+    round = Column(String(50))
+    score = Column(String(50))
