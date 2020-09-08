@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from src.data_scraping import get_raw_players, get_raw_games
+from src.data.data_scraping import get_raw_players, get_raw_games
 
 
 @pytest.mark.slow

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from .constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL
+from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL
 
 
 def get_raw_players(n_players: int = None) -> pd.DataFrame:
