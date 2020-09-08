@@ -3,26 +3,28 @@ import datetime
 import numpy as np
 
 from ..conftest import TEST_DB
-from src.db.db import CommandDB, QueryDB
-from src.db.models.player import Player
-from src.db.models.tournament import Tournament
-from src.db.models.performance import Performance
-from src.db.models.game import WTA, ITF
+from src.db.db import CommandDB, DBClient
+from src.constants import WTA_IDENTIFIER
+
+from src.db.schema.player import PlayerTable, PlayerCreateSchema, PlayerSchema
+from src.db.schema.tournament import TournamentTable, TournamentCreateSchema, TournamentSchema
+from src.db.schema.game import GameTable, GameCreateSchema, GameSchema
+from src.db.schema.performance import _PerformanceTable, WPerformanceTable, LPerformanceTable, PerformanceCreateSchema, PerformanceSchema
 
 
 @pytest.fixture(scope='module')
-def sample_player() -> Player:
-    return Player(first_name='Tom', last_name='Jones', nationality='IRE', dob=datetime.date(2000, 1, 1), hand='R')
+def sample_player() -> PlayerTable:
+    return PlayerTable(first_name='Tom', last_name='Jones', nationality='IRE', dob=datetime.datetime(2000, 1, 1), hand='R')
 
 
 @pytest.fixture(scope='module')
-def sample_tournament() -> Tournament:
-    return Tournament(name='Aus Open', surface='Hard', draw_size=32, level='G', start_date=datetime.date(2000, 1, 1))
+def sample_tournament() -> TournamentTable:
+    return TournamentTable(name='Aus Open', surface='Hard', draw_size=32, level='G', start_date=datetime.datetime(2000, 1, 1))
 
 
 class TestDBClient:
 
-    def test_init(self, db_client):
+    def test_init(self, db_client: DBClient):
         '''
         Ensure connected to expected database.
         '''
@@ -33,66 +35,103 @@ class TestCommandDB:
 
     @pytest.fixture(scope='class')
     def command_db(self, db_client) -> CommandDB:
-        return CommandDB(db_client)
+        return CommandDB(db_client.session)
 
     def test_add_player(self, db_client, command_db, sample_player):
-        command_db.add_player(sample_player)
+        # convert to pydantic object to validate insert schema
+        player = PlayerCreateSchema.from_orm(sample_player)
+        player_id = command_db.add_player(player)
 
-        # will raise exception if there is anything other than 1 instance present
-        db_client.session.query(Player).\
-            filter(Player.first_name == sample_player.first_name).\
-            filter(Player.last_name == sample_player.last_name).\
-            filter(Player.nationality == sample_player.nationality).\
-            filter(Player.dob == sample_player.dob).\
-            filter(Player.hand == sample_player.hand).one()
+        queried_player = db_client.session.query(PlayerTable).\
+            filter(PlayerTable.id == player_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        PlayerSchema.from_orm(queried_player)
+
+        assert queried_player.first_name == player.first_name
+        assert queried_player.last_name == player.last_name
+        assert queried_player.nationality == player.nationality
+        assert queried_player.dob == player.dob
+        assert queried_player.hand == player.hand
+        assert queried_player.name == player.first_name + " " + player.last_name
 
     def test_add_tournament(self, db_client, command_db, sample_tournament):
-        command_db.add_tournament(sample_tournament)
+        # convert to pydantic object to validate insert schema
+        tournament = TournamentCreateSchema.from_orm(sample_tournament)
+        tournament_id = command_db.add_tournament(tournament)
 
-        # will raise exception if there is anything other than 1 instance present
-        db_client.session.query(Tournament).\
-            filter(Tournament.name == sample_tournament.name).\
-            filter(Tournament.surface == sample_tournament.surface).\
-            filter(Tournament.draw_size == sample_tournament.draw_size).\
-            filter(Tournament.level == sample_tournament.level).\
-            filter(Tournament.start_date == sample_tournament.start_date).one()
+        queried_tournament = db_client.session.query(TournamentTable).\
+            filter(TournamentTable.id == tournament_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        TournamentSchema.from_orm(queried_tournament)
 
-    def test_add_game(self, db_client, command_db, sample_player, sample_tournament):
-        w_performance = Performance(player=sample_player)
-        l_performance = Performance(player=sample_player)
+        assert queried_tournament.name == tournament.name
+        assert queried_tournament.surface == tournament.surface
+        assert queried_tournament.draw_size == tournament.draw_size
+        assert queried_tournament.level == tournament.level
+        assert queried_tournament.start_date == tournament.start_date
 
-        game = WTA(tournament=sample_tournament, w_performance=w_performance, l_performance=l_performance)
+    def test_add_game(self, db_client, command_db, sample_tournament):
+        tournament_id = db_client.session.query(TournamentTable).\
+            filter(TournamentTable.name == sample_tournament.name).one().id
 
-        command_db.add_game(game)
+        game = GameCreateSchema(score='6-0 6-0', round='R32', circuit=WTA_IDENTIFIER)
+        game_id = command_db.add_game(game, tournament_id=tournament_id)
 
-        db_client.session.query(WTA).\
-            filter(WTA.tournament == sample_tournament).\
-            filter(WTA.w_performance == w_performance).\
-            filter(WTA.l_performance == l_performance).one()
+        queried_game = db_client.session.query(GameTable).\
+            filter(GameTable.id == game_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        GameSchema.from_orm(queried_game)
 
+        assert queried_game.id == game_id
+        assert queried_game.tournament_id == tournament_id
+        assert queried_game.score == game.score
+        assert queried_game.round == game.round
+        assert queried_game.circuit == game.circuit
 
-class TestQueryDB:
+        # add game should update tournaments game thus ensure games accessible via tournament
+        queried_tournament = db_client.session.query(TournamentTable).\
+            filter(TournamentTable.id == tournament_id).first()
+        assert queried_tournament.games[0].id == queried_game.id
 
-    @pytest.fixture(scope='class')
-    def query_db(self, db_client) -> QueryDB:
-        return QueryDB(db_client)
+    def test_add_performance(self, db_client, command_db, sample_tournament, sample_player):
+        # id's needed to create performance object
+        tournament_id = db_client.session.query(TournamentTable).\
+            filter(TournamentTable.name == sample_tournament.name).one().id
+        game_id = db_client.session.query(GameTable).\
+            filter(GameTable.tournament_id == tournament_id).one().id
+        player_id = db_client.session.query(PlayerTable).\
+            filter(PlayerTable.name == sample_player.name).\
+            filter(PlayerTable.dob == sample_player.dob).one().id
 
-    def test_get_player(self, query_db, sample_player):
-        player = query_db.get_player(sample_player.name, sample_player.dob)
+        performance_id = command_db.add_performance(performance=PerformanceCreateSchema(won=True),
+                                                    player_id=player_id, game_id=game_id)
 
-        assert player == sample_player
-        assert query_db.get_player("Test Player", datetime.date.today()) is None
+        queried_performance = db_client.session.query(_PerformanceTable).\
+            filter(_PerformanceTable.id == performance_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        PerformanceSchema.from_orm(queried_performance)
 
-    def test_get_tournament(self, query_db, sample_tournament):
-        tournament = query_db.get_tournament(sample_tournament.name, sample_tournament.start_date)
+        assert isinstance(queried_performance, WPerformanceTable)
+        assert queried_performance.player_id == player_id
+        assert queried_performance.game_id == game_id
+        assert queried_performance.won
 
-        assert tournament == sample_tournament
-        assert query_db.get_tournament("Test", datetime.date.today()) is None
+        # add performance, won=True should update games w_performance thus ensure games accessible via game
+        queried_game = db_client.session.query(GameTable).\
+            filter(GameTable.id == game_id).one()
+        assert queried_game.w_performance.id == queried_performance.id
 
-    def test_get_game(self, query_db, sample_tournament, sample_player):
-        game = query_db.get_game(sample_tournament, sample_player, sample_player)
+        # test LPerformance, won=False should create LPerformance  instance
+        performance_id = command_db.add_performance(performance=PerformanceCreateSchema(won=False),
+                                                    player_id=player_id, game_id=game_id)
 
-        assert game.tournament == sample_tournament
-        assert game.w_performance.player == sample_player
-        assert game.l_performance.player == sample_player
-        assert game.circuit == 'wta'
+        # query LPerformance table to ensure mapped correctly
+        queried_performance = db_client.session.query(_PerformanceTable).\
+            filter(_PerformanceTable.id == performance_id).one()
+        # ensure meets expected schema
+        PerformanceSchema.from_orm(queried_performance)
+
+        assert isinstance(queried_performance, LPerformanceTable)
+        assert queried_performance.player_id == player_id
+        assert queried_performance.game_id == game_id
+        assert ~queried_performance.won

@@ -1,7 +1,7 @@
 import pytest
 import pandas as pd
 from datetime import datetime
-from src.data_cleaning import infer_dob, to_datetime
+from src.data.data_cleaning import infer_dob, to_datetime
 
 
 def test_infer_dob():

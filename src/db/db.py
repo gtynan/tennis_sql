@@ -8,11 +8,12 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ._secrets import db_config
-from .models.base import BASE
-from .models.player import Player
-from .models.tournament import Tournament
-from .models.performance import Performance
-from .models.game import _Game
+
+from .schema.base import Base
+from .schema.player import PlayerCreateSchema, PlayerTable
+from .schema.tournament import TournamentCreateSchema, TournamentTable
+from .schema.game import GameCreateSchema, GameTable
+from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPerformanceTable
 
 
 class DBClient:
@@ -37,7 +38,7 @@ class DBClient:
         self.engine = create_engine(connection_str, echo=True)
 
         # any class inheriting Base that does not have a table in the db will have one generated for them
-        BASE.metadata.create_all(self.engine)
+        Base.metadata.create_all(self.engine)
 
         # creates session objects if more needed (used in tests mainly)
         self._Session = sessionmaker(bind=self.engine)
@@ -58,110 +59,74 @@ class CommandDB:
     Write side
     '''
 
-    def __init__(self, db_client: DBClient) -> None:
-        self.db_client = db_client
+    def __init__(self, session: Session) -> None:
+        self.session = session
 
-    def _add_instance(self, instance: BASE):
+    def _add_instance(self, instance: Base) -> int:
         """Handles all single instance additions to the database
 
         Args:
-            instance (BASE): instance of db_table that inherits BASE
-        """
-        self.db_client.session.add(instance)
-        self.db_client.session.commit()
+            instance (Base): instance of db_table that inherits Base
 
-    def add_player(self, player: Player) -> None:
+        Returns:
+            int: instance id in table
+        """
+        self.session.add(instance)
+        self.session.commit()
+        self.session.refresh(instance)
+        # any object being added to a table must have an id col
+        return instance.id
+
+    def add_player(self, player: PlayerCreateSchema) -> int:
         """Add player to database
 
         Args:
-            player (Player): instance of player to add
-        """
-        self._add_instance(player)
+            player (PlayerCreateSchema): instance of player to add
 
-    def add_tournament(self, tournament: Tournament) -> None:
+        Returns:
+            int: player id of added player
+        """
+        player = PlayerTable(**player.dict())
+        return self._add_instance(player)
+
+    def add_tournament(self, tournament: TournamentCreateSchema) -> int:
         """Add tournament to database
 
         Args:
-            tournament (Tournament): instance of tournament to add
-        """
-        self._add_instance(tournament)
+            tournament (TournamentCreateSchema): instance of tournament to add
 
-    def add_game(self, game: _Game) -> None:
+        Returns:
+            int: tournament id of added tournament
+        """
+        tournament = TournamentTable(**tournament.dict())
+        return self._add_instance(tournament)
+
+    def add_game(self, game: GameCreateSchema, tournament_id: int) -> int:
         """Add game to database
 
         Args:
-            game (_Game): instance of game
-        """
-        self._add_instance(game)
-
-
-class QueryDB:
-    '''
-    Read side
-    '''
-
-    def __init__(self, db_client: DBClient) -> None:
-        self.db_client = db_client
-
-    def get_player(self, name: str, dob: datetime) -> Player:
-        """Get player from database
-
-        Args:
-            first_name (str): player's first name
-            last_name (str): player's last name
-            dob (datetime): player's date of birth
-
-        Raises:
-            Exception: If multiple results found
+            game (GameCreateSchema): instance of game to add
+            tournament_id (int): id of tournament game played in
 
         Returns:
-            Player: instance of queried player
+            int: game id of added game
         """
-        try:
-            return self.db_client.session.query(Player).\
-                filter(Player.name == name).\
-                filter(Player.dob == dob).one_or_none()
-        except MultipleResultsFound:
-            raise Exception("Multiple instances of same player found.")
+        game = GameTable(**game.dict(), tournament_id=tournament_id)
+        return self._add_instance(game)
 
-    def get_tournament(self, name: str, start_date: datetime) -> Tournament:
-        """Get tournament from database
+    def add_performance(self, performance: PerformanceCreateSchema, player_id: int, game_id: int) -> int:
+        """Add performance to database
 
         Args:
-            name (str): tournament name
-            start_date (datetime): tournament start date
-
-        Raises:
-            Exception: If multiple results found
+            performance (PerformanceCreateSchema): instance of performance to add
+            player_id (int): id of player who the performance relates to 
+            game_id (int): id of game performance relates ot 
 
         Returns:
-            Tournament: instance of queried tournamnet
+            int: performance id of added performance
         """
-        try:
-            return self.db_client.session.query(Tournament).\
-                filter(Tournament.name == name).\
-                filter(Tournament.start_date == start_date).one_or_none()
-        except MultipleResultsFound:
-            raise Exception("Multiple instances of same tournament found.")
-
-    def get_game(self, tournament: Tournament, w_player: Player, l_player: Player) -> _Game:
-        """Get game from database
-
-        Args:
-            tournament (Tournament): tournament object
-            w_player (Player): winning player object
-            l_player (Player): loseing player object
-
-        Raises:
-            Exception: If multiple results found
-
-        Returns:
-            _Game: instance of queried game
-        """
-        try:
-            return self.db_client.session.query(_Game).\
-                filter(_Game.tournament == tournament).\
-                filter(_Game.w_performance.has(Performance.player == w_player)).\
-                filter(_Game.l_performance.has(Performance.player == l_player)).one_or_none()
-        except MultipleResultsFound:
-            raise Exception("Multiple instances of same game found.")
+        if performance.won:
+            performance = WPerformanceTable(**performance.dict(), player_id=player_id, game_id=game_id)
+        else:
+            performance = LPerformanceTable(**performance.dict(), player_id=player_id, game_id=game_id)
+        return self._add_instance(performance)
