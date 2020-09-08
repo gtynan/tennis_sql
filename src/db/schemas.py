@@ -23,3 +23,22 @@ class PlayerCreate(PlayerBase):
 class Player(PlayerBase):
     id: int
     name: str
+
+
+class TournamentBase(BaseModel):
+    name: str
+    surface: str
+    draw_size: int
+    level: str
+    start_date: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class TournamentCreate(TournamentBase):
+    pass
+
+
+class Tournament(TournamentBase):
+    id: int

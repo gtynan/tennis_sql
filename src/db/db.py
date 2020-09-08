@@ -77,19 +77,25 @@ class CommandDB:
         """Add player to database
 
         Args:
-            player (Player): instance of player to add
+            player (schemas.PlayerCreate): instance of player to add
+
+        Returns:
+            int: player id of added player
         """
         player = models.Player(**player.dict())
         return self._add_instance(player)
 
-    # def add_tournament(self, tournament: schemas.TournamentCreate) -> None:
-    #     """Add tournament to database
+    def add_tournament(self, tournament: schemas.TournamentCreate) -> int:
+        """Add tournament to database
 
-    #     Args:
-    #         tournament (Tournament): instance of tournament to add
-    #     """
-    #     tournament = models.Tournament(**tournament.dict())
-    #     self._add_instance(tournament)
+        Args:
+            tournament (schemas.TournamentCreate): instance of tournament to add
+
+        Returns:
+            int: tournament id of added tournament
+        """
+        tournament = models.Tournament(**tournament.dict())
+        return self._add_instance(tournament)
 
     # def add_game(self, game: schemas.GameCreate, tourney_id: int, w_performance_id: int, l_performance_id: int) -> None:
     #     """Add game to database

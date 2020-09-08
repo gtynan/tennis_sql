@@ -15,6 +15,11 @@ def sample_player() -> models.Player:
     return models.Player(first_name='Tom', last_name='Jones', nationality='IRE', dob=datetime.datetime(2000, 1, 1), hand='R')
 
 
+@pytest.fixture(scope='module')
+def sample_tournament() -> models.Tournament:
+    return models.Tournament(name='Aus Open', surface='Hard', draw_size=32, level='G', start_date=datetime.datetime(2000, 1, 1))
+
+
 class TestDBClient:
 
     def test_init(self, db_client: DBClient):
@@ -48,3 +53,21 @@ class TestCommandDB:
         assert queried_player.dob == player.dob
         assert queried_player.hand == player.hand
         assert queried_player.name == player.first_name + " " + player.last_name
+
+    def test_add_tournament(self, db_client, command_db, sample_tournament):
+        # convert to pydantic object to validate insert schema
+        tournament = schemas.TournamentCreate.from_orm(sample_tournament)
+        # function being tested
+        tournament_id = command_db.add_tournament(tournament)
+
+        # retrieve added tournament from db
+        queried_tournament = db_client.session.query(models.Tournament).\
+            filter(models.Tournament.id == tournament_id).one()
+        # ensure matches expected schema (will raise exception otherwise)
+        schemas.Tournament.from_orm(queried_tournament)
+
+        assert queried_tournament.name == tournament.name
+        assert queried_tournament.surface == tournament.surface
+        assert queried_tournament.draw_size == tournament.draw_size
+        assert queried_tournament.level == tournament.level
+        assert queried_tournament.start_date == tournament.start_date
