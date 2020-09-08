@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
 
@@ -25,6 +25,23 @@ class Player(PlayerBase):
     name: str
 
 
+class GameBase(BaseModel):
+    round: str
+    score: str
+
+    class Config:
+        orm_mode = True
+
+
+class GameCreate(GameBase):
+    pass
+
+
+class Game(GameBase):
+    id: int
+    tournament_id: int
+
+
 class TournamentBase(BaseModel):
     name: str
     surface: str
@@ -42,20 +59,4 @@ class TournamentCreate(TournamentBase):
 
 class Tournament(TournamentBase):
     id: int
-
-
-class GameBase(BaseModel):
-    round: str
-    score: str
-
-    class Config:
-        orm_mode = True
-
-
-class GameCreate(GameBase):
-    pass
-
-
-class Game(GameBase):
-    id: int
-    tournament: Tournament
+    games: List[Game]

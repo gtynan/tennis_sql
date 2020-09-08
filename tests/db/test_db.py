@@ -87,6 +87,10 @@ class TestCommandDB:
         schemas.Game.from_orm(queried_game)
 
         assert queried_game.id == game_id
-        assert queried_game.tournament.id == tournament_id
+        assert queried_game.tournament_id == tournament_id
         assert queried_game.score == game.score
         assert queried_game.round == game.round
+
+        print(schemas.Tournament.from_orm(db_client.session.query(models.Tournament).
+                                          filter(models.Tournament.name == sample_tournament.name).
+                                          filter(models.Tournament.start_date == sample_tournament.start_date).one()))
