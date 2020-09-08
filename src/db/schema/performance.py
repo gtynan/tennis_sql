@@ -12,7 +12,7 @@ class _PerformanceTable(BaseTable):
     __tablename__ = 'performance'
 
     player_id = Column(Integer, ForeignKey('player.id'))
-    player = relationship("Player", back_populates="performances", uselist=False)
+    player = relationship("PlayerTable", back_populates="performances", uselist=False)
 
     aces = Column(Integer)
     double_faults = Column(Integer)

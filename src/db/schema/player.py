@@ -1,9 +1,12 @@
+from typing import List
 from datetime import datetime
 
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import BaseTable, BaseModel
+from .performance import PerformanceSchema
 
 
 class PlayerTable(BaseTable):
@@ -48,4 +51,4 @@ class PlayerSchema(PlayerBaseSchema):
     """
     id: int
     name: str
-    performances: List[Performance] = []
+    performances: List[PerformanceSchema] = []

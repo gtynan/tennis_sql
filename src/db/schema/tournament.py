@@ -1,9 +1,11 @@
+from typing import List
 from datetime import datetime
 
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import relationship
 
 from .base import BaseTable, BaseModel
+from .game import GameSchema
 
 
 class TournamentTable(BaseTable):
@@ -43,4 +45,4 @@ class TournamentSchema(TournamentBaseSchema):
     """Pydantic object schema for tournaments
     """
     id: int
-    games: List[Game] = []
+    games: List[GameSchema] = []
