@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from ._secrets import db_config
 
-from .schema.base import Base
+from .schema.base import BaseTable
 from .schema.player import PlayerCreateSchema, PlayerTable
 from .schema.tournament import TournamentCreateSchema, TournamentTable
 from .schema.game import GameCreateSchema, GameTable
@@ -62,7 +62,7 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _add_instance(self, instance: Base) -> int:
+    def _add_instance(self, instance: BaseTable) -> int:
         """Handles all single instance additions to the database
 
         Args:
