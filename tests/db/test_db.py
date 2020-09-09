@@ -74,8 +74,8 @@ class TestCommandDB:
         tournament_id = db_client.session.query(TournamentTable).\
             filter(TournamentTable.name == sample_tournament.name).one().id
 
-        game = GameCreateSchema(score='6-0 6-0', round='R32', circuit=WTA_IDENTIFIER)
-        game_id = command_db.add_game(game, tournament_id=tournament_id)
+        game = GameCreateSchema(score='6-0 6-0', round='R32', circuit=WTA_IDENTIFIER, tournament_id=tournament_id)
+        game_id = command_db.add_game(game)
 
         queried_game = db_client.session.query(GameTable).\
             filter(GameTable.id == game_id).one()
@@ -88,11 +88,6 @@ class TestCommandDB:
         assert queried_game.round == game.round
         assert queried_game.circuit == game.circuit
 
-        # add game should update tournaments game thus ensure games accessible via tournament
-        queried_tournament = db_client.session.query(TournamentTable).\
-            filter(TournamentTable.id == tournament_id).first()
-        assert queried_tournament.games[0].id == queried_game.id
-
     def test_add_performance(self, db_client, command_db, sample_tournament, sample_player):
         # id's needed to create performance object
         tournament_id = db_client.session.query(TournamentTable).\
@@ -103,8 +98,8 @@ class TestCommandDB:
             filter(PlayerTable.name == sample_player.name).\
             filter(PlayerTable.dob == sample_player.dob).one().id
 
-        performance_id = command_db.add_performance(performance=PerformanceCreateSchema(won=True),
-                                                    player_id=player_id, game_id=game_id)
+        performance_id = command_db.add_performance(
+            performance=PerformanceCreateSchema(won=True, player_id=player_id, game_id=game_id))
 
         queried_performance = db_client.session.query(_PerformanceTable).\
             filter(_PerformanceTable.id == performance_id).one()
@@ -112,8 +107,8 @@ class TestCommandDB:
         PerformanceSchema.from_orm(queried_performance)
 
         assert isinstance(queried_performance, WPerformanceTable)
-        assert queried_performance.player_id == player_id
         assert queried_performance.game_id == game_id
+        assert queried_performance.player.id == player_id
         assert queried_performance.won
 
         # add performance, won=True should update games w_performance thus ensure games accessible via game
@@ -122,8 +117,8 @@ class TestCommandDB:
         assert queried_game.w_performance.id == queried_performance.id
 
         # test LPerformance, won=False should create LPerformance  instance
-        performance_id = command_db.add_performance(performance=PerformanceCreateSchema(won=False),
-                                                    player_id=player_id, game_id=game_id)
+        performance_id = command_db.add_performance(
+            performance=PerformanceCreateSchema(won=False, player_id=player_id, game_id=game_id))
 
         # query LPerformance table to ensure mapped correctly
         queried_performance = db_client.session.query(_PerformanceTable).\
@@ -132,8 +127,8 @@ class TestCommandDB:
         PerformanceSchema.from_orm(queried_performance)
 
         assert isinstance(queried_performance, LPerformanceTable)
-        assert queried_performance.player_id == player_id
         assert queried_performance.game_id == game_id
+        assert queried_performance.player.id == player_id
         assert ~queried_performance.won
 
 
@@ -150,15 +145,12 @@ class TestQueryDB:
         assert player.id == 1
         assert player.name == sample_player.name
         assert player.dob == sample_player.dob
-        # in test_add_performances this player was added as both the winner and loser
-        assert len(player.performances) == 2
 
     def test_get_tournament_by_id(self, query_db, sample_tournament):
         tournament = query_db.get_tournament_by_id(1)
 
         assert isinstance(tournament, TournamentTable)
         assert tournament.id == 1
-        assert len(tournament.games) == 1
         assert tournament.name == sample_tournament.name
 
     def test_get_game_by_id(self, query_db, sample_tournament, sample_player):
@@ -167,4 +159,3 @@ class TestQueryDB:
         assert isinstance(game, GameTable)
         assert game.id == 1
         assert game.tournament.name == sample_tournament.name
-        assert game.w_performance.player.name == game.l_performance.player.name == sample_player.name
