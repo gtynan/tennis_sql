@@ -1,3 +1,4 @@
+from typing import Generator
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -6,13 +7,12 @@ from .db.schema.tournament import TournamentSchema
 from .db.schema.game import GameSchema
 from .db.db import DBClient, QueryDB
 
-# calls metadata create all within init
-DBClient()
+DBClient().generate_schema()
 app = FastAPI()
 
 
 # dependency
-def get_query_db() -> QueryDB:
+def get_query_db() -> Generator[QueryDB, None, None]:
     db = DBClient()
     try:
         yield QueryDB(db.session)

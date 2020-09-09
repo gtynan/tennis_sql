@@ -37,9 +37,6 @@ class DBClient:
         connection_str = f'mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}'
         self.engine = create_engine(connection_str, echo=True)
 
-        # any class inheriting Base that does not have a table in the db will have one generated for them
-        Base.metadata.create_all(self.engine)
-
         # creates session objects if more needed (used in tests mainly)
         self._Session = sessionmaker(bind=self.engine)
         # session object to communicate with db
@@ -48,6 +45,10 @@ class DBClient:
         # some values are mapped to numpy int so need to convert
         # https://github.com/worldveil/dejavu/issues/142
         event.listen(self.engine, "before_cursor_execute", DBClient.add_own_encoders)
+
+    def generate_schema(self):
+        # any class inheriting Base that does not have a table in the db will have one generated for them
+        Base.metadata.create_all(self.engine)
 
     @staticmethod
     def add_own_encoders(conn, cursor, query, *args):
@@ -100,7 +101,7 @@ class CommandDB:
         tournament = TournamentTable(**tournament.dict())
         return self._add_instance(tournament)
 
-    def add_game(self, game: GameCreateSchema, tournament_id: int) -> int:
+    def add_game(self, game: GameCreateSchema) -> int:
         """Add game to database
 
         Args:
@@ -110,10 +111,10 @@ class CommandDB:
         Returns:
             int: game id of added game
         """
-        game = GameTable(**game.dict(), tournament_id=tournament_id)
+        game = GameTable(**game.dict())
         return self._add_instance(game)
 
-    def add_performance(self, performance: PerformanceCreateSchema, player_id: int, game_id: int) -> int:
+    def add_performance(self, performance: PerformanceCreateSchema) -> int:
         """Add performance to database
 
         Args:
@@ -125,10 +126,9 @@ class CommandDB:
             int: performance id of added performance
         """
         if performance.won:
-            performance = WPerformanceTable(**performance.dict(), player_id=player_id, game_id=game_id)
+            return self._add_instance(WPerformanceTable(**performance.dict()))
         else:
-            performance = LPerformanceTable(**performance.dict(), player_id=player_id, game_id=game_id)
-        return self._add_instance(performance)
+            return self._add_instance(LPerformanceTable(**performance.dict()))
 
 
 class QueryDB:

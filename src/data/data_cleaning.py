@@ -5,12 +5,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 
-@overload
-def infer_dob(age: str, t_date: str, data: pd.Series) -> datetime: ...
-@overload
-def infer_dob(age: str, t_date: str, data: pd.DataFrame) -> pd.Series: ...
-
-
 def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:
     """Convert age as a decimal to date of birth using tournament start date
 
@@ -22,10 +16,7 @@ def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Un
     Returns:
         Union[pd.Series, datetime]: inferred ages
     """
-    if isinstance(data, pd.DataFrame):
-        return data[t_date] - ((data[age]*365.24).round(decimals=0)).astype('timedelta64[D]')
-    else:
-        return data[t_date] - relativedelta(days=int(round((data[age]*365.24))))
+    return data[t_date] - ((data[age]*365.24).round(decimals=0)).astype('timedelta64[D]')
 
 
 @overload

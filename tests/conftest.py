@@ -12,6 +12,8 @@ TEST_DB = 'test_db'
 def db_client():
     # db instance
     db_client = DBClient(db_name=TEST_DB)
+    # creates database schema
+    db_client.generate_schema()
     yield db_client
     # teardown delete all `Base` created test_db tables
     db_client.session.close()

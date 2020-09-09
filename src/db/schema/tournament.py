@@ -5,7 +5,6 @@ from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import relationship
 
 from .base import BaseTable, BaseModel
-from .game import GameSchema
 
 
 class TournamentTable(BaseTable):
@@ -18,8 +17,6 @@ class TournamentTable(BaseTable):
     draw_size = Column(Integer)
     level = Column(String(50))
     start_date = Column(DateTime)
-
-    games = relationship("GameTable", back_populates='tournament')
 
 
 class TournamentBaseSchema(BaseModel):
@@ -45,4 +42,3 @@ class TournamentSchema(TournamentBaseSchema):
     """Pydantic object schema for tournaments
     """
     id: int
-    games: List[GameSchema] = []
