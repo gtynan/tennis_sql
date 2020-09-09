@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from ..conftest import TEST_DB
-from src.db.db import CommandDB, DBClient
+from src.db.db import CommandDB, DBClient, QueryDB
 from src.constants import WTA_IDENTIFIER
 
 from src.db.schema.player import PlayerTable, PlayerCreateSchema, PlayerSchema
@@ -135,3 +135,36 @@ class TestCommandDB:
         assert queried_performance.player_id == player_id
         assert queried_performance.game_id == game_id
         assert ~queried_performance.won
+
+
+class TestQueryDB:
+
+    @pytest.fixture(scope='class')
+    def query_db(self, db_client) -> QueryDB:
+        return QueryDB(db_client.session)
+
+    def test_get_player_by_id(self, query_db, sample_player):
+        player = query_db.get_player_by_id(1)
+
+        assert isinstance(player, PlayerTable)
+        assert player.id == 1
+        assert player.name == sample_player.name
+        assert player.dob == sample_player.dob
+        # in test_add_performances this player was added as both the winner and loser
+        assert len(player.performances) == 2
+
+    def test_get_tournament_by_id(self, query_db, sample_tournament):
+        tournament = query_db.get_tournament_by_id(1)
+
+        assert isinstance(tournament, TournamentTable)
+        assert tournament.id == 1
+        assert len(tournament.games) == 1
+        assert tournament.name == sample_tournament.name
+
+    def test_get_game_by_id(self, query_db, sample_tournament, sample_player):
+        game = query_db.get_game_by_id(1)
+
+        assert isinstance(game, GameTable)
+        assert game.id == 1
+        assert game.tournament.name == sample_tournament.name
+        assert game.w_performance.player.name == game.l_performance.player.name == sample_player.name

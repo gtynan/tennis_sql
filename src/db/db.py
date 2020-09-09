@@ -7,9 +7,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from ._secrets import db_config
+from ..settings.db import DB_CONFIG
 
-from .schema.base import BaseTable
+from .schema.base import BaseTable, Base
 from .schema.player import PlayerCreateSchema, PlayerTable
 from .schema.tournament import TournamentCreateSchema, TournamentTable
 from .schema.game import GameCreateSchema, GameTable
@@ -19,11 +19,11 @@ from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPer
 class DBClient:
 
     def __init__(self,
-                 db_user: str = db_config['user'],
-                 db_pwd: str = db_config['password'],
-                 db_host: str = db_config['host'],
-                 db_port: int = db_config['port'],
-                 db_name: str = db_config['database']) -> None:
+                 db_user: str = DB_CONFIG['db_user'],
+                 db_pwd: str = DB_CONFIG['db_pwd'],
+                 db_host: str = DB_CONFIG['db_host'],
+                 db_port: int = DB_CONFIG['db_port'],
+                 db_name: str = DB_CONFIG['db_name']) -> None:
         """Create connection to database
 
         Args:
@@ -66,7 +66,7 @@ class CommandDB:
         """Handles all single instance additions to the database
 
         Args:
-            instance (Base): instance of db_table that inherits Base
+            instance (BaseTable): instance of db_table that inherits Base
 
         Returns:
             int: instance id in table
@@ -74,7 +74,6 @@ class CommandDB:
         self.session.add(instance)
         self.session.commit()
         self.session.refresh(instance)
-        # any object being added to a table must have an id col
         return instance.id
 
     def add_player(self, player: PlayerCreateSchema) -> int:
@@ -130,3 +129,24 @@ class CommandDB:
         else:
             performance = LPerformanceTable(**performance.dict(), player_id=player_id, game_id=game_id)
         return self._add_instance(performance)
+
+
+class QueryDB:
+    '''
+    Read side
+    '''
+
+    def __init__(self, session: Session) -> None:
+        self.session = session
+
+    def get_player_by_id(self, id: int) -> PlayerTable:
+        return self.session.query(PlayerTable).\
+            filter(PlayerTable.id == id).one_or_none()
+
+    def get_tournament_by_id(self, id: int) -> TournamentTable:
+        return self.session.query(TournamentTable).\
+            filter(TournamentTable.id == id).one_or_none()
+
+    def get_game_by_id(self, id: int) -> GameTable:
+        return self.session.query(GameTable).\
+            filter(GameTable.id == id).one_or_none()
