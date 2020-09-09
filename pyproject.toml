@@ -15,6 +15,7 @@ pydantic = "^1.6.1"
 fastapi = "^0.61.1"
 uvicorn = "^0.11.8"
 arq = "^0.19"
+requests = "^2.24.0"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"
