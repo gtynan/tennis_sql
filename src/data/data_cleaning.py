@@ -16,7 +16,6 @@ def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Un
     Returns:
         Union[pd.Series, datetime]: inferred ages
     """
-
     return data[t_date] - ((data[age]*365.24).round(decimals=0)).astype('timedelta64[D]')
 
 
