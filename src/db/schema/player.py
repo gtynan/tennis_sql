@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import BaseTable, BaseModel
-from .performance import PerformanceSchema
 
 
 class PlayerTable(BaseTable):
@@ -19,8 +18,6 @@ class PlayerTable(BaseTable):
     nationality = Column(String(50))
     dob = Column(DateTime)
     hand = Column(String(50))
-
-    performances = relationship("_PerformanceTable", back_populates='player')
 
     @hybrid_property
     def name(self):
@@ -51,4 +48,3 @@ class PlayerSchema(PlayerBaseSchema):
     """
     id: int
     name: str
-    performances: List[PerformanceSchema] = []
