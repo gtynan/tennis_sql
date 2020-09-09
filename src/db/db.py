@@ -126,10 +126,9 @@ class CommandDB:
             int: performance id of added performance
         """
         if performance.won:
-            performance = WPerformanceTable(**performance.dict())
+            return self._add_instance(WPerformanceTable(**performance.dict()))
         else:
-            performance = LPerformanceTable(**performance.dict())
-        return self._add_instance(performance)
+            return self._add_instance(LPerformanceTable(**performance.dict()))
 
 
 class QueryDB:
