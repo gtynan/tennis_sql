@@ -6,9 +6,9 @@ from dateutil.relativedelta import relativedelta
 
 
 @overload
-def infer_dob(age: str, t_date: str, data: pd.Series) -> datetime: ...
-@overload
 def infer_dob(age: str, t_date: str, data: pd.DataFrame) -> pd.Series: ...
+@overload
+def infer_dob(age: str, t_date: str, data: pd.Series) -> datetime: ...
 
 
 def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:

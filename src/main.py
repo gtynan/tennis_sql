@@ -1,3 +1,4 @@
+from typing import Generator
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -11,7 +12,7 @@ app = FastAPI()
 
 
 # dependency
-def get_query_db() -> QueryDB:
+def get_query_db() -> Generator[QueryDB, None, None]:
     db = DBClient()
     try:
         yield QueryDB(db.session)
