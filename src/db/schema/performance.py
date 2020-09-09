@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from .base import BaseTable, BaseModel
+from .player import PlayerSchema
 
 
 class _PerformanceTable(BaseTable):
@@ -11,9 +12,11 @@ class _PerformanceTable(BaseTable):
     """
     __tablename__ = 'performance'
 
-    player_id = Column(Integer, ForeignKey('player.id'))
-    player = relationship("PlayerTable", back_populates="performances", uselist=False)
+    # player who's performance it relates to
+    player_id = Column(Integer, ForeignKey("player.id"))
+    player = relationship("PlayerTable", uselist=False, foreign_keys=player_id)
 
+    # player game stats
     aces = Column(Integer)
     double_faults = Column(Integer)
     serve_points = Column(Integer)
@@ -24,6 +27,7 @@ class _PerformanceTable(BaseTable):
     break_points_faced = Column(Integer)
     break_points_saved = Column(Integer)
 
+    # outcome
     won = Column(Boolean, nullable=False)
 
     __mapper_args__ = {
@@ -38,7 +42,7 @@ class WPerformanceTable(_PerformanceTable):
 
     id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
 
-    # game has a winning and losing performance hence need to create child performances
+    # game winning performance relates to
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship("GameTable", back_populates="w_performance", uselist=False)
 
@@ -54,7 +58,7 @@ class LPerformanceTable(_PerformanceTable):
 
     id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
 
-    # game has a winning and losing performance hence need to create child performances
+    # game losing performance relates to
     game_id = Column(Integer, ForeignKey('game.id'))
     game = relationship("GameTable", back_populates="l_performance", uselist=False)
 
@@ -66,8 +70,6 @@ class LPerformanceTable(_PerformanceTable):
 class PerformanceBaseSchema(BaseModel):
     """Pydantic base schema for performances
     """
-    won: bool
-
     aces: Optional[int]
     double_faults: Optional[int]
     serve_points: Optional[int]
@@ -82,15 +84,16 @@ class PerformanceBaseSchema(BaseModel):
 class PerformanceCreateSchema(PerformanceBaseSchema):
     """Pydantic create schema for performances
     """
-    pass
+    game_id: int
+    player_id: int
+    # used in db.py add_performance() to determine which table to insert to
+    won: bool
 
 
 class PerformanceSchema(PerformanceBaseSchema):
     """Pydantic object schema for performances
     """
-    id: int
-    player_id: int
-    game_id: int
+    player: PlayerSchema
 
     class Config:
         orm_mode = True
