@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from ._secrets import db_config
+from ..settings.db import DB_CONFIG
 
 from .schema.base import Base
 from .schema.player import PlayerCreateSchema, PlayerTable
@@ -19,11 +19,11 @@ from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPer
 class DBClient:
 
     def __init__(self,
-                 db_user: str = db_config['user'],
-                 db_pwd: str = db_config['password'],
-                 db_host: str = db_config['host'],
-                 db_port: int = db_config['port'],
-                 db_name: str = db_config['database']) -> None:
+                 db_user: str = DB_CONFIG['db_user'],
+                 db_pwd: str = DB_CONFIG['db_pwd'],
+                 db_host: str = DB_CONFIG['db_host'],
+                 db_port: int = DB_CONFIG['db_port'],
+                 db_name: str = DB_CONFIG['db_name']) -> None:
         """Create connection to database
 
         Args:
