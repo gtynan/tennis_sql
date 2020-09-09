@@ -6,8 +6,7 @@ from .db.schema.tournament import TournamentSchema
 from .db.schema.game import GameSchema
 from .db.db import DBClient, QueryDB
 
-# calls metadata create all within init
-DBClient()
+DBClient().generate_schema()
 app = FastAPI()
 
 
