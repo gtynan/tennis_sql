@@ -14,7 +14,7 @@ DB_PORT: int = config("DB_PORT", cast=int)
 
 
 DBConfig = TypedDict('DBConfig',
-                     {'host': str, 'port': int, 'user': str, 'password': str, 'database': str, })
+                     {'db_host': str, 'db_port': int, 'db_user': str, 'db_pwd': str, 'db_name': str, })
 
 
 DB_CONFIG: DBConfig = {
