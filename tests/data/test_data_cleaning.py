@@ -2,7 +2,9 @@ import pytest
 import pandas as pd
 import numpy as np
 from datetime import datetime
+
 from src.data.data_cleaning import infer_dob, to_datetime, raw_changes_to_df
+from src.constants import UPDATED_COL
 
 
 def test_infer_dob():
@@ -43,4 +45,4 @@ def test_raw_changes_to_df():
 
     # row 1 was a new addition so updated should not be flagged
     # row 2 and 3 was the same row so the row denoted - was removed and + flagged as updated
-    np.testing.assert_array_equal(df['updated'].values, [False, True])
+    np.testing.assert_array_equal(df[UPDATED_COL].values, [False, True])

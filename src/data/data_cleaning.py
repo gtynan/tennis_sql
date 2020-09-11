@@ -5,6 +5,8 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import io
 
+from ..constants import UPDATED_COL
+
 
 def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:
     """Convert age as a decimal to date of birth using tournament start date
@@ -67,10 +69,10 @@ def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
     # convert to dataframe
     df = pd.read_csv(io.StringIO('\n'.join(rows)), header=columns)
 
-    df['updated'] = changes
+    df[UPDATED_COL] = changes
     # rows denoted - are old rows who's values have been replaced with rows denoted as +
     df = df[df.updated != '-']
-    df.loc[df.updated == '+', 'updated'] = True
-    df.loc[df.updated != True, 'updated'] = False
+    df.loc[df.updated == '+', UPDATED_COL] = True
+    df.loc[df.updated != True, UPDATED_COL] = False
 
     return df.reset_index(drop=True)
