@@ -1,4 +1,6 @@
+from typing import Iterator, Tuple
 import pandas as pd
+import requests
 
 from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL
 
@@ -50,3 +52,44 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
 
             data = data.append(new_itf, ignore_index=True)
         return data
+
+
+def get_last_commit_sha() -> str:
+    """Gets the SHA for the last github commit to the tennis_wta repo
+
+    Raises:
+        Exception: if request fails
+
+    Returns:
+        str: SHA
+    """
+    r = requests.get('https://api.github.com/repos/JeffSackmann/tennis_wta/commits')
+    if r.status_code == 200:
+        return r.json()[0]['sha']
+    raise Exception("Get last commit failed.")
+
+
+def get_file_changes(sha: str, previous_sha: str) -> Iterator[Tuple[str, str]]:
+    """Given two SHA's returns filename and differences to file since previous SHA
+
+    Args:
+        sha (str): SHA for last commit to repo
+        previous_sha (str): previous SHA to see which changes have happend since this commit
+
+    Raises:
+        Exception: if request fails
+
+    Yields:
+        Iterator[Tuple[str, str]]: (file_name, file_changes)
+    """
+    if previous_sha:
+        r = requests.get(f'https://api.github.com/repos/jeffsackmann/tennis_wta/compare/{previous_sha}...{sha}')
+    if r.status_code == 200:
+        for file in r.json()['files']:
+            try:
+                yield file['filename'], file['patch']
+            # when file has no `patch`
+            except:
+                pass
+    else:
+        raise Exception("Get files changed failed")
