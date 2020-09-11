@@ -14,6 +14,7 @@ from .schema.player import PlayerCreateSchema, PlayerTable
 from .schema.tournament import TournamentCreateSchema, TournamentTable
 from .schema.game import GameCreateSchema, GameTable
 from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPerformanceTable
+from .schema.github import GithubCreateSchema, GithubTable, GithubSchema
 
 
 class DBClient:
@@ -130,6 +131,10 @@ class CommandDB:
         else:
             return self._add_instance(LPerformanceTable(**performance.dict()))
 
+    def add_github_sha(self, sha: str) -> int:
+        github = GithubTable(**GithubCreateSchema(sha=sha).dict())
+        return self._add_instance(github)
+
 
 class QueryDB:
     '''
@@ -150,3 +155,7 @@ class QueryDB:
     def get_game_by_id(self, id: int) -> GameTable:
         return self.session.query(GameTable).\
             filter(GameTable.id == id).one_or_none()
+
+    def get_last_github_sha(self) -> GithubTable:
+        return self.session.query(GithubTable).\
+            order_by(GithubTable.date.desc()).first()

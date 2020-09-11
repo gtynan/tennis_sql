@@ -7,12 +7,12 @@ from src.db.schema.player import PlayerTable
 from src.db.schema.game import GameTable
 from src.db.schema.performance import _PerformanceTable, WPerformanceTable, LPerformanceTable
 from src.db.schema.tournament import TournamentTable
-
+from src.db.schema.github import GithubTable
 
 # TODO dynamically pull all classes from db_models
 # tables to check for in TestDBClient test_schema
 TABLE_CLASSES = [PlayerTable(), GameTable(), _PerformanceTable(), WPerformanceTable(),
-                 LPerformanceTable(), TournamentTable()]
+                 LPerformanceTable(), TournamentTable(), GithubTable()]
 
 
 class TestDBModels:

@@ -10,6 +10,7 @@ from src.db.schema.player import PlayerTable, PlayerCreateSchema, PlayerSchema
 from src.db.schema.tournament import TournamentTable, TournamentCreateSchema, TournamentSchema
 from src.db.schema.game import GameTable, GameCreateSchema, GameSchema
 from src.db.schema.performance import _PerformanceTable, WPerformanceTable, LPerformanceTable, PerformanceCreateSchema, PerformanceSchema
+from src.db.schema.github import GithubTable
 
 
 @pytest.fixture(scope='module')
@@ -131,6 +132,18 @@ class TestCommandDB:
         assert queried_performance.player.id == player_id
         assert ~queried_performance.won
 
+    def test_add_github_sha(self, db_client,  command_db):
+        sha = 'TESTSHA101'
+        date = datetime.datetime.now()
+        command_db.add_github_sha(sha)
+
+        github_sha = db_client.session.query(GithubTable).\
+            filter(GithubTable.sha == sha).one()
+
+        assert github_sha.date.day == date.day
+        assert github_sha.date.month == date.month
+        assert github_sha.date.year == date.year
+
 
 class TestQueryDB:
 
@@ -159,3 +172,13 @@ class TestQueryDB:
         assert isinstance(game, GameTable)
         assert game.id == 1
         assert game.tournament.name == sample_tournament.name
+
+    def test_add_github_sha(self, db_client,  query_db):
+        sha = 'TESTSHA102'
+
+        # adding a second sha to assert it is not returned
+        db_client.session.add(GithubTable(sha=sha))
+
+        github = query_db.get_last_github_sha()
+
+        assert github.sha != sha
