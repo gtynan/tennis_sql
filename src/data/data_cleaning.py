@@ -1,8 +1,9 @@
-from typing import Union, overload
+from typing import Union, overload, List
 import pandas as pd
 import numpy as np
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import io
 
 
 def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:
@@ -44,3 +45,32 @@ def to_datetime(date: Union[pd.Series, int, str]) -> Union[pd.Series, datetime]:
         if isinstance(date, datetime):
             return date
         return datetime.strptime(str(date), format)
+
+
+def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
+    """Given raw string of github changes convert to dataframe to be cleaned and inserted. Rows denoted as `updated` are old data with new values
+
+    Args:
+        raw_string (str): raw string of github changes
+        columns (List[str]): columns to set on returned dataframe
+
+    Returns:
+        pd.DataFrame: string data in dataframe form
+    """
+    # ignore first row as just github flags
+    rows = raw_string.split('\n')[1:]
+
+    # can be one of ' ', -, +
+    changes = [row[0] for row in rows]
+    rows = [row[1:] for row in rows]
+
+    # convert to dataframe
+    df = pd.read_csv(io.StringIO('\n'.join(rows)), header=columns)
+
+    df['updated'] = changes
+    # rows denoted - are old rows who's values have been replaced with rows denoted as +
+    df = df[df.updated != '-']
+    df.loc[df.updated == '+', 'updated'] = True
+    df.loc[df.updated != True, 'updated'] = False
+
+    return df.reset_index(drop=True)
