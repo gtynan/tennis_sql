@@ -28,7 +28,7 @@ def to_datetime(date: Union[int, str]) -> datetime: ...
 def to_datetime(date: pd.Series) -> pd.Series: ...
 
 
-def to_datetime(date: Union[pd.Series, int, str]) -> Union[pd.Series, datetime]:
+def to_datetime(date: Union[pd.Series, int, float, str]) -> Union[pd.Series, datetime]:
     """Converts string to datetime
 
     Args:
@@ -46,7 +46,10 @@ def to_datetime(date: Union[pd.Series, int, str]) -> Union[pd.Series, datetime]:
     else:
         if isinstance(date, datetime):
             return date
-        return datetime.strptime(str(date), format)
+        try:
+            return datetime.strptime(str(int(date)), format)
+        except:
+            return None
 
 
 def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
