@@ -38,13 +38,13 @@ class TestCommandDB:
     def command_db(self, db_client) -> CommandDB:
         return CommandDB(db_client.session)
 
-    def test_add_player(self, db_client, command_db, sample_player):
+    def test_add_players(self, db_client, command_db, sample_player):
         # convert to pydantic object to validate insert schema
         player = PlayerCreateSchema.from_orm(sample_player)
-        player_id = command_db.add_player(player)
+        command_db.add_players([player])
 
         queried_player = db_client.session.query(PlayerTable).\
-            filter(PlayerTable.id == player_id).one()
+            filter(PlayerTable.name == sample_player.name).one()
         # ensure matches expected schema (will raise exception otherwise)
         PlayerSchema.from_orm(queried_player)
 
@@ -55,13 +55,13 @@ class TestCommandDB:
         assert queried_player.hand == player.hand
         assert queried_player.name == player.first_name + " " + player.last_name
 
-    def test_add_tournament(self, db_client, command_db, sample_tournament):
+    def test_add_tournaments(self, db_client, command_db, sample_tournament):
         # convert to pydantic object to validate insert schema
         tournament = TournamentCreateSchema.from_orm(sample_tournament)
-        tournament_id = command_db.add_tournament(tournament)
+        command_db.add_tournaments([tournament])
 
         queried_tournament = db_client.session.query(TournamentTable).\
-            filter(TournamentTable.id == tournament_id).one()
+            filter(TournamentTable.name == sample_tournament.name).one()
         # ensure matches expected schema (will raise exception otherwise)
         TournamentSchema.from_orm(queried_tournament)
 
@@ -71,25 +71,24 @@ class TestCommandDB:
         assert queried_tournament.level == tournament.level
         assert queried_tournament.start_date == tournament.start_date
 
-    def test_add_game(self, db_client, command_db, sample_tournament):
+    def test_add_games(self, db_client, command_db, sample_tournament):
         tournament_id = db_client.session.query(TournamentTable).\
             filter(TournamentTable.name == sample_tournament.name).one().id
 
         game = GameCreateSchema(score='6-0 6-0', round='R32', circuit=WTA_IDENTIFIER, tournament_id=tournament_id)
-        game_id = command_db.add_game(game)
+        command_db.add_games([game])
 
         queried_game = db_client.session.query(GameTable).\
-            filter(GameTable.id == game_id).one()
+            filter(GameTable.score == game.score).one()
         # ensure matches expected schema (will raise exception otherwise)
         GameSchema.from_orm(queried_game)
 
-        assert queried_game.id == game_id
         assert queried_game.tournament_id == tournament_id
         assert queried_game.score == game.score
         assert queried_game.round == game.round
         assert queried_game.circuit == game.circuit
 
-    def test_add_performance(self, db_client, command_db, sample_tournament, sample_player):
+    def test_add_performances(self, db_client, command_db, sample_tournament, sample_player):
         # id's needed to create performance object
         tournament_id = db_client.session.query(TournamentTable).\
             filter(TournamentTable.name == sample_tournament.name).one().id
@@ -99,38 +98,23 @@ class TestCommandDB:
             filter(PlayerTable.name == sample_player.name).\
             filter(PlayerTable.dob == sample_player.dob).one().id
 
-        performance_id = command_db.add_performance(
-            performance=PerformanceCreateSchema(won=True, player_id=player_id, game_id=game_id))
+        w_performance = PerformanceCreateSchema(won=True, player_id=player_id, game_id=game_id)
+        l_performance = PerformanceCreateSchema(won=False, player_id=player_id, game_id=game_id)
 
-        queried_performance = db_client.session.query(_PerformanceTable).\
-            filter(_PerformanceTable.id == performance_id).one()
+        command_db.add_performances([w_performance, l_performance])
+
+        queried_performances = db_client.session.query(_PerformanceTable).\
+            filter(_PerformanceTable.player_id == player_id).all()
+
         # ensure matches expected schema (will raise exception otherwise)
-        PerformanceSchema.from_orm(queried_performance)
+        [PerformanceSchema.from_orm(queried_performance) for queried_performance in queried_performances]
 
-        assert isinstance(queried_performance, WPerformanceTable)
-        assert queried_performance.game_id == game_id
-        assert queried_performance.player.id == player_id
-        assert queried_performance.won
-
-        # add performance, won=True should update games w_performance thus ensure games accessible via game
-        queried_game = db_client.session.query(GameTable).\
-            filter(GameTable.id == game_id).one()
-        assert queried_game.w_performance.id == queried_performance.id
-
-        # test LPerformance, won=False should create LPerformance  instance
-        performance_id = command_db.add_performance(
-            performance=PerformanceCreateSchema(won=False, player_id=player_id, game_id=game_id))
-
-        # query LPerformance table to ensure mapped correctly
-        queried_performance = db_client.session.query(_PerformanceTable).\
-            filter(_PerformanceTable.id == performance_id).one()
-        # ensure meets expected schema
-        PerformanceSchema.from_orm(queried_performance)
-
-        assert isinstance(queried_performance, LPerformanceTable)
-        assert queried_performance.game_id == game_id
-        assert queried_performance.player.id == player_id
-        assert ~queried_performance.won
+        assert isinstance(queried_performances[0], WPerformanceTable)
+        assert isinstance(queried_performances[1], LPerformanceTable)
+        assert queried_performances[0].game_id == queried_performances[1].game_id == game_id
+        assert queried_performances[0].player.id == queried_performances[1].player.id == player_id
+        assert queried_performances[0].won
+        assert ~queried_performances[1].won
 
     def test_add_github_sha(self, db_client,  command_db):
         sha = 'TESTSHA101'
@@ -173,12 +157,13 @@ class TestQueryDB:
         assert game.id == 1
         assert game.tournament.name == sample_tournament.name
 
-    def test_add_github_sha(self, db_client,  query_db):
+    def test_get_last_github_sha(self, db_client,  query_db):
         sha = 'TESTSHA102'
 
         # adding a second sha to assert it is not returned
         db_client.session.add(GithubTable(sha=sha))
 
-        github = query_db.get_last_github_sha()
+        queried_sha = query_db.get_last_github_sha()
 
-        assert github.sha != sha
+        assert queried_sha != sha
+        assert isinstance(queried_sha, str)

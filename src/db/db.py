@@ -82,7 +82,7 @@ class CommandDB:
         players = [PlayerTable(**player.dict()) for player in players]
         self._add_instances(players)
 
-    def add_tournament(self, tournaments: List[TournamentCreateSchema]) -> None:
+    def add_tournaments(self, tournaments: List[TournamentCreateSchema]) -> None:
         """Add tournaments to database
 
         Args:
