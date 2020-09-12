@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from sqlalchemy import Column, String, DateTime
@@ -27,10 +27,11 @@ class PlayerTable(BaseTable):
 class PlayerBaseSchema(BaseModel):
     """Pydantic base schema for player
     """
+    id: Optional[int] = None
     first_name: str
     last_name: str
     nationality: str
-    dob: datetime
+    dob: Optional[datetime] = None
     hand: str
 
     class Config:
