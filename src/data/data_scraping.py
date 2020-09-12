@@ -19,6 +19,7 @@ def get_raw_players(n_players: int = None) -> pd.DataFrame:
         PLAYER_URL,
         mangle_dupe_cols=True,  # duplicate columns i.e. X, X -> X, X.1
         nrows=n_players,
+        encoding="ISO-8859-1"
     )
 
 
