@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 from datetime import datetime
 import numpy as np
 
@@ -64,76 +64,56 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _add_instance(self, instance: BaseTable) -> int:
-        """Handles all single instance additions to the database
+    def _add_instances(self, instances: List[BaseTable]) -> None:
+        """Handles all instance additions to the database
 
         Args:
-            instance (BaseTable): instance of db_table that inherits Base
-
-        Returns:
-            int: instance id in table
+            instances (List[BaseTable]): instances of db_table that inherits Base
         """
-        self.session.add(instance)
+        self.session.add_all(instances)
         self.session.commit()
-        self.session.refresh(instance)
-        return instance.id
 
-    def add_player(self, player: PlayerCreateSchema) -> int:
-        """Add player to database
+    def add_players(self, players: List[PlayerCreateSchema]) -> None:
+        """Add players to database
 
         Args:
-            player (PlayerCreateSchema): instance of player to add
-
-        Returns:
-            int: player id of added player
+            players (List[PlayerCreateSchema]): instance of players to add
         """
-        player = PlayerTable(**player.dict())
-        return self._add_instance(player)
+        players = [PlayerTable(**player.dict()) for player in players]
+        self._add_instances(players)
 
-    def add_tournament(self, tournament: TournamentCreateSchema) -> int:
-        """Add tournament to database
+    def add_tournament(self, tournaments: List[TournamentCreateSchema]) -> None:
+        """Add tournaments to database
 
         Args:
-            tournament (TournamentCreateSchema): instance of tournament to add
-
-        Returns:
-            int: tournament id of added tournament
+            tournaments (List[TournamentCreateSchema]): instances of tournaments to add
         """
-        tournament = TournamentTable(**tournament.dict())
-        return self._add_instance(tournament)
+        tournaments = [TournamentTable(**tournament.dict()) for tournament in tournaments]
+        self._add_instances(tournaments)
 
-    def add_game(self, game: GameCreateSchema) -> int:
+    def add_games(self, games: List[GameCreateSchema]) -> None:
         """Add game to database
 
         Args:
-            game (GameCreateSchema): instance of game to add
-            tournament_id (int): id of tournament game played in
-
-        Returns:
-            int: game id of added game
+            games (List[GameCreateSchema]): instances of games to add
         """
-        game = GameTable(**game.dict())
-        return self._add_instance(game)
+        games = [GameTable(**game.dict()) for game in games]
+        return self._add_instances(games)
 
-    def add_performance(self, performance: PerformanceCreateSchema) -> int:
-        """Add performance to database
+    def add_performances(self, performances: List[PerformanceCreateSchema]) -> None:
+        """Add performances to database
 
         Args:
-            performance (PerformanceCreateSchema): instance of performance to add
-            player_id (int): id of player who the performance relates to 
-            game_id (int): id of game performance relates ot 
-
-        Returns:
-            int: performance id of added performance
+            performances (List[PerformanceCreateSchema]): instances of performances to add
         """
-        if performance.won:
-            return self._add_instance(WPerformanceTable(**performance.dict()))
-        else:
-            return self._add_instance(LPerformanceTable(**performance.dict()))
+        performances = [WPerformanceTable(**performance.dict()) if performance.won
+                        else LPerformanceTable(**performance.dict()) for performance in performances]
+        return self._add_instances(performances)
 
     def add_github_sha(self, sha: str) -> int:
         github = GithubTable(**GithubCreateSchema(sha=sha).dict())
-        return self._add_instance(github)
+        self.session.add(github)
+        self.session.commit()
 
 
 class QueryDB:
@@ -156,6 +136,9 @@ class QueryDB:
         return self.session.query(GameTable).\
             filter(GameTable.id == id).one_or_none()
 
-    def get_last_github_sha(self) -> GithubTable:
-        return self.session.query(GithubTable).\
-            order_by(GithubTable.date.desc()).first()
+    def get_last_github_sha(self) -> str:
+        try:
+            return self.session.query(GithubTable).\
+                order_by(GithubTable.date.desc()).first().sha
+        except AttributeError:
+            return
