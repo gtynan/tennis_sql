@@ -5,13 +5,10 @@ from src.db.schema.base import Base
 from src.data.data_scraping import get_raw_players, get_raw_games
 
 
-TEST_DB = 'test_db'
-
-
 @pytest.fixture(scope='session')
 def db_client():
     # db instance
-    db_client = DBClient(db_name=TEST_DB)
+    db_client = DBClient()
     # creates database schema
     db_client.generate_schema()
     yield db_client

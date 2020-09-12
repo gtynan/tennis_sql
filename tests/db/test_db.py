@@ -1,8 +1,8 @@
 import pytest
 import datetime
 import numpy as np
+import os
 
-from ..conftest import TEST_DB
 from src.db.db import CommandDB, DBClient, QueryDB
 from src.constants import WTA_IDENTIFIER
 
@@ -29,7 +29,7 @@ class TestDBClient:
         '''
         Ensure connected to expected database.
         '''
-        assert db_client.engine.url.database == TEST_DB
+        assert db_client.engine.url.database == os.getenv('DATABASE') == 'test_db'
 
 
 class TestCommandDB:

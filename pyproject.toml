@@ -17,6 +17,7 @@ uvicorn = "^0.11.8"
 arq = "^0.19"
 requests = "^2.24.0"
 python-dotenv = "^0.14.0"
+pytest-dotenv = "^0.5.2"
 
 [tool.poetry.dev-dependencies]
 autopep8 = "^1.5.4"

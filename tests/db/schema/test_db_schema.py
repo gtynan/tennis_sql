@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 from sqlalchemy import inspect
 
-from tests.conftest import TEST_DB
 from src.db.schema.player import PlayerTable
 from src.db.schema.game import GameTable
 from src.db.schema.performance import _PerformanceTable, WPerformanceTable, LPerformanceTable
