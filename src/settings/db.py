@@ -1,16 +1,15 @@
 from mypy_extensions import TypedDict
+import os
+from dotenv import load_dotenv
 
-from pathlib import Path
-from starlette.config import Config
+load_dotenv()
 
-p: Path = Path(__file__).parents[2] / ".env"
-config: Config = Config(p if p.exists() else None)
 
-DATABASE: str = config("DATABASE", cast=str)
-DB_USER: str = config("DB_USER", cast=str)
-DB_PASSWORD: str = config("DB_PASSWORD", cast=str)
-DB_HOST: str = config("DB_HOST", cast=str)
-DB_PORT: int = config("DB_PORT", cast=int)
+DATABASE: str = os.getenv("DATABASE")
+DB_USER: str = os.getenv("DB_USER")
+DB_PASSWORD: str = os.getenv("DB_PASSWORD")
+DB_HOST: str = os.getenv("DB_HOST")
+DB_PORT: str = os.getenv("DB_PORT")
 
 
 DBConfig = TypedDict('DBConfig',
