@@ -79,7 +79,7 @@ class TestCommandDB:
         command_db.add_games([game])
 
         queried_game = db_client.session.query(GameTable).\
-            filter(GameTable.score == game.score).one()
+            filter(GameTable.tournament.has(TournamentTable.id == tournament_id)).one()
         # ensure matches expected schema (will raise exception otherwise)
         GameSchema.from_orm(queried_game)
 
@@ -136,25 +136,32 @@ class TestQueryDB:
         return QueryDB(db_client.session)
 
     def test_get_player_by_id(self, query_db, sample_player):
-        player = query_db.get_player_by_id(1)
+        player_id = query_db.session.query(PlayerTable).\
+            filter(PlayerTable.name == sample_player.name).one().id
+        player = query_db.get_player_by_id(player_id)
 
         assert isinstance(player, PlayerTable)
-        assert player.id == 1
+        assert player.id == player_id
         assert player.name == sample_player.name
         assert player.dob == sample_player.dob
 
     def test_get_tournament_by_id(self, query_db, sample_tournament):
-        tournament = query_db.get_tournament_by_id(1)
+        tournament_id = query_db.session.query(TournamentTable).\
+            filter(TournamentTable.name == sample_tournament.name).one().id
+        tournament = query_db.get_tournament_by_id(tournament_id)
 
         assert isinstance(tournament, TournamentTable)
-        assert tournament.id == 1
+        assert tournament.id == tournament_id
         assert tournament.name == sample_tournament.name
 
-    def test_get_game_by_id(self, query_db, sample_tournament, sample_player):
-        game = query_db.get_game_by_id(1)
+    def test_get_game_by_id(self, query_db, sample_tournament):
+        game_id = query_db.session.query(GameTable).\
+            filter(GameTable.tournament.has(TournamentTable.name == sample_tournament.name)).first().id
+
+        game = query_db.get_game_by_id(game_id)
 
         assert isinstance(game, GameTable)
-        assert game.id == 1
+        assert game.id == game_id
         assert game.tournament.name == sample_tournament.name
 
     def test_get_last_github_sha(self, db_client,  query_db):
