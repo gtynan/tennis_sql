@@ -22,7 +22,7 @@ def test_read_player_by_id(client, db_client):
     response = client.get('/player/1')
     assert response.status_code == 404
 
-    player = PlayerTable(first_name='Test', last_name='Player', nationality='USA', hand='U')
+    player = PlayerTable(id=1, first_name='Test', last_name='Player', nationality='USA', hand='U')
     db_client.session.add(player)
     db_client.session.commit()
     db_client.session.refresh(player)
@@ -38,7 +38,8 @@ def test_read_tournament_by_id(client, db_client):
     response = client.get('/tournament/1')
     assert response.status_code == 404
 
-    tournament = TournamentTable(name='Test', surface='Grass', draw_size=32, level='wta', start_date=datetime.now())
+    tournament = TournamentTable(id='hi', name='Test', surface='Grass', draw_size=32,
+                                 level='wta', start_date=datetime.now())
     db_client.session.add(tournament)
     db_client.session.commit()
     db_client.session.refresh(tournament)
@@ -57,7 +58,8 @@ def test_read_game_by_id(client, db_client):
     tournament_id = db_client.session.query(TournamentTable).\
         filter(TournamentTable.name == 'Test').one().id
 
-    game = GameTable(tournament_id=tournament_id, round='R32', score='6-0 6-0', circuit=WTA_IDENTIFIER)
+    game = GameTable(id=f'{tournament_id}_100', tournament_id=tournament_id,
+                     round='R32', score='6-0 6-0', circuit=WTA_IDENTIFIER)
     db_client.session.add(game)
     db_client.session.commit()
     db_client.session.refresh(game)
