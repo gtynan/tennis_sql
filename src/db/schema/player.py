@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -27,7 +27,7 @@ class PlayerTable(BaseTable):
 class PlayerBaseSchema(BaseModel):
     """Pydantic base schema for player
     """
-    id: Optional[int] = None
+    id: int
     first_name: str
     last_name: str
     nationality: str
@@ -47,5 +47,4 @@ class PlayerCreateSchema(PlayerBaseSchema):
 class PlayerSchema(PlayerBaseSchema):
     """Pydantic object schema for player
     """
-    id: int
     name: str

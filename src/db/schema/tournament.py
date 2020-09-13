@@ -12,6 +12,7 @@ class TournamentTable(BaseTable):
     """
     __tablename__ = 'tournament'
 
+    id = Column(String(50), primary_key=True)
     name = Column(String(50))
     surface = Column(String(50))
     draw_size = Column(Integer)
@@ -22,6 +23,7 @@ class TournamentTable(BaseTable):
 class TournamentBaseSchema(BaseModel):
     """Pydantic base schema for tournaments
     """
+    id: str
     name: str
     surface: str
     draw_size: int
@@ -41,4 +43,4 @@ class TournamentCreateSchema(TournamentBaseSchema):
 class TournamentSchema(TournamentBaseSchema):
     """Pydantic object schema for tournaments
     """
-    id: int
+    pass

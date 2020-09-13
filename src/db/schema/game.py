@@ -13,7 +13,9 @@ class GameTable(BaseTable):
     """
     __tablename__ = 'game'
 
-    tournament_id = Column(Integer, ForeignKey('tournament.id'))
+    id = Column(String(50), primary_key=True)
+
+    tournament_id = Column(String(50), ForeignKey('tournament.id'))
     tournament = relationship("TournamentTable", uselist=False, foreign_keys=[tournament_id])
 
     w_performance = relationship("WPerformanceTable", uselist=False)
@@ -27,6 +29,7 @@ class GameTable(BaseTable):
 class GameBaseSchema(BaseModel):
     """Pydantic base schema for games
     """
+    id: str
     round: str
     score: str
     circuit: str
@@ -38,13 +41,12 @@ class GameBaseSchema(BaseModel):
 class GameCreateSchema(GameBaseSchema):
     """Pydantic create schema for games
     """
-    tournament_id: int
+    tournament_id: str
 
 
 class GameSchema(GameBaseSchema):
     """Pydantic object schema for games
     """
-    id: int
     tournament: TournamentSchema
     # must leave optional as performance added after game and thus
     # theoretically possible game could be queried before performance added

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import Column, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, String
 from sqlalchemy.orm import relationship
 
 from .base import BaseTable, BaseModel
@@ -43,7 +43,7 @@ class WPerformanceTable(_PerformanceTable):
     id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
 
     # game winning performance relates to
-    game_id = Column(Integer, ForeignKey('game.id'))
+    game_id = Column(String(50), ForeignKey('game.id'))
     game = relationship("GameTable", back_populates="w_performance", uselist=False)
 
     __mapper_args__ = {
@@ -59,7 +59,7 @@ class LPerformanceTable(_PerformanceTable):
     id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
 
     # game losing performance relates to
-    game_id = Column(Integer, ForeignKey('game.id'))
+    game_id = Column(String(50), ForeignKey('game.id'))
     game = relationship("GameTable", back_populates="l_performance", uselist=False)
 
     __mapper_args__ = {
@@ -84,7 +84,7 @@ class PerformanceBaseSchema(BaseModel):
 class PerformanceCreateSchema(PerformanceBaseSchema):
     """Pydantic create schema for performances
     """
-    game_id: int
+    game_id: str
     player_id: int
     # used in db.py add_performance() to determine which table to insert to
     won: bool
