@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import Column, Integer, ForeignKey, Boolean, String
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, String, Float
 from sqlalchemy.orm import relationship
 
 from .base import BaseTable, BaseModel
@@ -17,15 +17,15 @@ class _PerformanceTable(BaseTable):
     player = relationship("PlayerTable", uselist=False, foreign_keys=player_id)
 
     # player game stats
-    aces = Column(Integer)
-    double_faults = Column(Integer)
-    serve_points = Column(Integer)
-    first_serve_in = Column(Integer)
-    first_serve_won = Column(Integer)
-    second_serve_won = Column(Integer)
-    serve_games = Column(Integer)
-    break_points_faced = Column(Integer)
-    break_points_saved = Column(Integer)
+    aces = Column(Float)
+    double_faults = Column(Float)
+    serve_points = Column(Float)
+    first_serve_in = Column(Float)
+    first_serve_won = Column(Float)
+    second_serve_won = Column(Float)
+    serve_games = Column(Float)
+    break_points_faced = Column(Float)
+    break_points_saved = Column(Float)
 
     # outcome
     won = Column(Boolean, nullable=False)
@@ -70,15 +70,15 @@ class LPerformanceTable(_PerformanceTable):
 class PerformanceBaseSchema(BaseModel):
     """Pydantic base schema for performances
     """
-    aces: Optional[int]
-    double_faults: Optional[int]
-    serve_points: Optional[int]
-    first_serve_in: Optional[int]
-    first_serve_won: Optional[int]
-    second_serve_won: Optional[int]
-    serve_games: Optional[int]
-    break_points_faced: Optional[int]
-    break_points_saved: Optional[int]
+    aces: Optional[float] = None
+    double_faults: Optional[float] = None
+    serve_points: Optional[float] = None
+    first_serve_in: Optional[float] = None
+    first_serve_won: Optional[float] = None
+    second_serve_won: Optional[float] = None
+    serve_games: Optional[float] = None
+    break_points_faced: Optional[float] = None
+    break_points_saved: Optional[float] = None
 
 
 class PerformanceCreateSchema(PerformanceBaseSchema):
