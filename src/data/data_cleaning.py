@@ -1,4 +1,4 @@
-from typing import Union, overload, List
+from typing import Union, overload, List, Tuple
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -6,6 +6,10 @@ from dateutil.relativedelta import relativedelta
 import io
 
 from ..constants import UPDATED_COL
+
+
+def get_game_id(tournament_id: str, match_num: str) -> str:
+    return f'{tournament_id}_{match_num}'
 
 
 def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:
