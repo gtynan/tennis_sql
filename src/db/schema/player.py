@@ -43,14 +43,7 @@ class PlayerBaseSchema(BaseModel):
 class PlayerCreateSchema(PlayerBaseSchema):
     """Pydantic create schema for player
     """
-
-    @validator('hand')
-    def hand_not_nan(cls, v):
-        # because string column pydantic converts np.nan = 'nan'
-        if v == 'nan':
-            # by returning None, value will take default column value 'U'
-            return
-        return v
+    pass
 
 
 class PlayerSchema(PlayerBaseSchema):
