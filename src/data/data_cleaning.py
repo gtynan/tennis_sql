@@ -74,7 +74,7 @@ def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
     rows = [row[1:] for row in rows]
 
     # convert to dataframe
-    df = pd.read_csv(io.StringIO('\n'.join(rows)), names=columns)
+    df = pd.read_csv(io.StringIO('\n'.join(rows)), names=columns, header=None)
 
     df[UPDATED_COL] = changes
     # rows denoted - are old rows who's values have been replaced with rows denoted as +
