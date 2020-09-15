@@ -34,7 +34,7 @@ class PlayerBaseSchema(BaseModel):
     last_name: str
     nationality: str
     dob: Optional[datetime] = None
-    hand: Optional[str] = None
+    hand: str
 
     class Config:
         orm_mode = True
