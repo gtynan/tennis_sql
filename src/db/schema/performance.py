@@ -70,15 +70,15 @@ class LPerformanceTable(_PerformanceTable):
 class PerformanceBaseSchema(BaseModel):
     """Pydantic base schema for performances
     """
-    aces: Optional[float] = None
-    double_faults: Optional[float] = None
-    serve_points: Optional[float] = None
-    first_serve_in: Optional[float] = None
-    first_serve_won: Optional[float] = None
-    second_serve_won: Optional[float] = None
-    serve_games: Optional[float] = None
-    break_points_faced: Optional[float] = None
-    break_points_saved: Optional[float] = None
+    aces: float
+    double_faults: float
+    serve_points: float
+    first_serve_in: float
+    first_serve_won: float
+    second_serve_won: float
+    serve_games: float
+    break_points_faced: float
+    break_points_saved: float
 
 
 class PerformanceCreateSchema(PerformanceBaseSchema):
