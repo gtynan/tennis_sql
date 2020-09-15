@@ -5,6 +5,8 @@ from sqlalchemy import Column, String, DateTime, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
+from pydantic import validator
+
 from .base import BaseTable, BaseModel
 
 
@@ -17,7 +19,7 @@ class PlayerTable(BaseTable):
     last_name = Column(String(50))
     nationality = Column(String(50))
     dob = Column(DateTime)
-    hand = Column(String(50))
+    hand = Column(String(50), default='U')
 
     @hybrid_property
     def name(self):
@@ -32,7 +34,15 @@ class PlayerBaseSchema(BaseModel):
     last_name: str
     nationality: str
     dob: Optional[datetime] = None
-    hand: str
+    hand: Optional[str] = None
+
+    @validator('hand')
+    def hand_not_nan(cls, v):
+        # because string column pydantic converts np.nan = 'nan'
+        if v == 'nan':
+            # by returning None, value will take default column value 'U'
+            return
+        return v
 
     class Config:
         orm_mode = True
