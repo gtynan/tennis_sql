@@ -4,6 +4,8 @@ from datetime import datetime
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.orm import relationship
 
+from pydantic import validator
+
 from .base import BaseTable, BaseModel
 
 
@@ -13,7 +15,7 @@ class TournamentTable(BaseTable):
     __tablename__ = 'tournament'
 
     id = Column(String(50), primary_key=True)
-    name = Column(String(50))
+    name = Column(String(100))
     surface = Column(String(50))
     draw_size = Column(Integer)
     level = Column(String(50))
@@ -32,6 +34,13 @@ class TournamentBaseSchema(BaseModel):
 
     class Config:
         orm_mode = True
+
+    # allows comparisons via np.unique()
+    def __eq__(self, other):
+        return self.id == other.id
+
+    def __lt__(self, other):
+        return self.id < other.id
 
 
 class TournamentCreateSchema(TournamentBaseSchema):
