@@ -1,7 +1,8 @@
 from typing import Iterator, Tuple
 import pandas as pd
 import requests
-from urllib.error import HTTPError
+from requests.exceptions import HTTPError
+from io import StringIO
 
 from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, UPDATED_COL
 
@@ -44,7 +45,15 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
             # each year we try scrape wta and itf data
             for url, identifier in [(WTA_URL, WTA_IDENTIFIER), (ITF_URL, ITF_IDENTIFIER)]:
                 try:
-                    new_data = pd.read_csv(url.format(year), encoding="ISO-8859-1", low_memory=False)
+                    req = requests.get(url.format(year),
+                                       headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
+                    # raises HttpError error if one
+                    req.raise_for_status()
+
+                    # TODO add to logger
+                    print(f"GOT: {url.format(year)}")
+
+                    new_data = pd.read_csv(StringIO(req.text))
                     new_data[SOURCE_COL] = identifier
                     # flags whether to add or update object
                     new_data[UPDATED_COL] = False
