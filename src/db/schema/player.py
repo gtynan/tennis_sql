@@ -36,14 +36,6 @@ class PlayerBaseSchema(BaseModel):
     dob: Optional[datetime] = None
     hand: Optional[str] = None
 
-    @validator('hand')
-    def hand_not_nan(cls, v):
-        # because string column pydantic converts np.nan = 'nan'
-        if v == 'nan':
-            # by returning None, value will take default column value 'U'
-            return
-        return v
-
     class Config:
         orm_mode = True
 
@@ -51,7 +43,14 @@ class PlayerBaseSchema(BaseModel):
 class PlayerCreateSchema(PlayerBaseSchema):
     """Pydantic create schema for player
     """
-    pass
+
+    @validator('hand')
+    def hand_not_nan(cls, v):
+        # because string column pydantic converts np.nan = 'nan'
+        if v == 'nan':
+            # by returning None, value will take default column value 'U'
+            return
+        return v
 
 
 class PlayerSchema(PlayerBaseSchema):
