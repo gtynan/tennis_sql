@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy import Column, Integer
-from pydantic import BaseModel
+from pydantic import BaseModel as PydanticBaseModel, validator
 
 Base: DeclarativeMeta = declarative_base()
 
@@ -11,3 +11,15 @@ class BaseTable(Base):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+class BaseModel(PydanticBaseModel):
+
+    @validator('*')
+    def str_nan_to_none(cls, v, field):
+        """pandas nan values when passed to string columns are converted literally via pydantic to 'nan', 
+           this function ensures they are given None values and thus NULL in db
+        """
+        if field.outer_type_ is str and v == 'nan':
+            return None
+        return v
