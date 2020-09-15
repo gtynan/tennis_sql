@@ -3,7 +3,7 @@ from typing import Optional
 from sqlalchemy import Column, Integer, ForeignKey, Boolean, String, Float
 from sqlalchemy.orm import relationship
 
-from .base import BaseTable, BaseModel
+from .base import BaseTable, BaseModel, CreateModel
 from .player import PlayerSchema
 
 
@@ -70,18 +70,18 @@ class LPerformanceTable(_PerformanceTable):
 class PerformanceBaseSchema(BaseModel):
     """Pydantic base schema for performances
     """
-    aces: float
-    double_faults: float
-    serve_points: float
-    first_serve_in: float
-    first_serve_won: float
-    second_serve_won: float
-    serve_games: float
-    break_points_faced: float
-    break_points_saved: float
+    aces: Optional[float]
+    double_faults: Optional[float]
+    serve_points: Optional[float]
+    first_serve_in: Optional[float]
+    first_serve_won: Optional[float]
+    second_serve_won: Optional[float]
+    serve_games: Optional[float]
+    break_points_faced: Optional[float]
+    break_points_saved: Optional[float]
 
 
-class PerformanceCreateSchema(PerformanceBaseSchema):
+class PerformanceCreateSchema(PerformanceBaseSchema, CreateModel):
     """Pydantic create schema for performances
     """
     game_id: str

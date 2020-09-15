@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 
 from pydantic import validator
 
-from .base import BaseTable, BaseModel
+from .base import BaseTable, BaseModel, CreateModel
 
 
 class TournamentTable(BaseTable):
@@ -43,7 +43,7 @@ class TournamentBaseSchema(BaseModel):
         return self.id < other.id
 
 
-class TournamentCreateSchema(TournamentBaseSchema):
+class TournamentCreateSchema(TournamentBaseSchema, CreateModel):
     """Pydantic create schema for tournaments
     """
     pass

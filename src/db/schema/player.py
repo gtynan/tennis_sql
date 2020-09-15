@@ -7,7 +7,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from pydantic import validator
 
-from .base import BaseTable, BaseModel
+from .base import BaseTable, BaseModel, CreateModel
 
 
 class PlayerTable(BaseTable):
@@ -40,7 +40,7 @@ class PlayerBaseSchema(BaseModel):
         orm_mode = True
 
 
-class PlayerCreateSchema(PlayerBaseSchema):
+class PlayerCreateSchema(PlayerBaseSchema, CreateModel):
     """Pydantic create schema for player
     """
     pass

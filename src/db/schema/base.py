@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy import Column, Integer
-from pydantic import BaseModel as PydanticBaseModel, validator
+from pydantic import BaseModel, validator
 import numpy as np
 
 Base: DeclarativeMeta = declarative_base()
@@ -14,7 +14,7 @@ class BaseTable(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
 
-class BaseModel(PydanticBaseModel):
+class CreateModel(BaseModel):
 
     @validator('*')
     def nan_to_none(cls, v, field):
