@@ -1,8 +1,9 @@
 from typing import Iterator, Tuple
 import pandas as pd
 import requests
+from urllib.error import HTTPError
 
-from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL
+from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, UPDATED_COL
 
 
 def get_raw_players(n_players: int = None) -> pd.DataFrame:
@@ -19,7 +20,7 @@ def get_raw_players(n_players: int = None) -> pd.DataFrame:
         PLAYER_URL,
         mangle_dupe_cols=True,  # duplicate columns i.e. X, X -> X, X.1
         nrows=n_players,
-        encoding="ISO-8859-1"
+        encoding="ISO-8859-1",
     )
 
 
@@ -40,18 +41,22 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
     else:
         data = None
         for year in range(year_from, year_to + 1):
-            new_wta = pd.read_csv(WTA_URL.format(year), encoding="ISO-8859-1")
-            new_itf = pd.read_csv(ITF_URL.format(year), encoding="ISO-8859-1")
+            # each year we try scrape wta and itf data
+            for url, identifier in [(WTA_URL, WTA_IDENTIFIER), (ITF_URL, ITF_IDENTIFIER)]:
+                try:
+                    new_data = pd.read_csv(url.format(year), encoding="ISO-8859-1", low_memory=False)
+                    new_data[SOURCE_COL] = identifier
+                    # flags whether to add or update object
+                    new_data[UPDATED_COL] = False
 
-            new_wta[SOURCE_COL] = 'W'
-            new_itf[SOURCE_COL] = 'I'
-
-            if isinstance(data, pd.DataFrame):
-                data = data.append(new_wta, ignore_index=True)
-            else:
-                data = new_wta
-
-            data = data.append(new_itf, ignore_index=True)
+                    if data is None:
+                        data = new_data
+                    else:
+                        data = data.append(new_data, ignore_index=True)
+                # file doesn't exist
+                except HTTPError:
+                    # TODO add to logger
+                    print(f'NOT FOUND: {url.format(year)}')
         return data
 
 
