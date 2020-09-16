@@ -2,6 +2,7 @@ from sqlalchemy import Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from .base import Base
+from .performance import WPerformance, LPerformance
 
 
 class Game(Base):
