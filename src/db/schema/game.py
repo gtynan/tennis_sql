@@ -2,7 +2,7 @@ from typing import Optional
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from .base import BaseTable, BaseModel
+from .base import BaseTable, BaseModel, CreateModel
 from .player import PlayerSchema
 from .performance import PerformanceSchema
 from .tournament import TournamentSchema
@@ -37,15 +37,8 @@ class GameBaseSchema(BaseModel):
     class Config:
         orm_mode = True
 
-    # allows comparisons via np.unique()
-    def __eq__(self, other):
-        return self.id == other.id
 
-    def __lt__(self, other):
-        return self.id < other.id
-
-
-class GameCreateSchema(GameBaseSchema):
+class GameCreateSchema(GameBaseSchema, CreateModel):
     """Pydantic create schema for games
     """
     tournament_id: str

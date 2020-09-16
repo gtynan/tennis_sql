@@ -35,13 +35,6 @@ class TournamentBaseSchema(BaseModel):
     class Config:
         orm_mode = True
 
-    # allows comparisons via np.unique()
-    def __eq__(self, other):
-        return self.id == other.id
-
-    def __lt__(self, other):
-        return self.id < other.id
-
 
 class TournamentCreateSchema(TournamentBaseSchema, CreateModel):
     """Pydantic create schema for tournaments

@@ -89,6 +89,13 @@ class PerformanceCreateSchema(PerformanceBaseSchema, CreateModel):
     # used in db.py add_performance() to determine which table to insert to
     won: bool
 
+    # override CreateModel comprison
+    def __eq__(self, other):
+        return (self.game_id == other.game_id) and (self.won == other.won)
+
+    def __lt__(self, other):
+        return self.game_id < other.game_id
+
 
 class PerformanceSchema(PerformanceBaseSchema):
     """Pydantic object schema for performances
