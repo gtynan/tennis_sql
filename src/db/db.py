@@ -1,19 +1,18 @@
-from typing import Union
+from typing import Union, List
 from datetime import datetime
 import numpy as np
 
 from sqlalchemy import event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.orm.exc import FlushError
 
 from ..settings.db import DB_CONFIG
 
-from .schema.base import BaseTable, Base
-from .schema.player import PlayerCreateSchema, PlayerTable
-from .schema.tournament import TournamentCreateSchema, TournamentTable
-from .schema.game import GameCreateSchema, GameTable
-from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPerformanceTable
+from .models.orm.base import Base as ORMBase
+from .models.orm.github import Github as ORMGithub
+from .models.pydantic.base import BaseModel
+from .models.pydantic.github import Github, GithubCreate
 
 
 class DBClient:
@@ -33,7 +32,6 @@ class DBClient:
             db_port (str, optional): database port. Defaults to db_config['port'].
             db_name (str, optional): database name. Defaults to db_config['database'].
         """
-
         connection_str = f'mysql+pymysql://{db_user}:{db_pwd}@{db_host}:{db_port}/{db_name}'
         self.engine = create_engine(connection_str, echo=True)
 
@@ -48,7 +46,11 @@ class DBClient:
 
     def generate_schema(self):
         # any class inheriting Base that does not have a table in the db will have one generated for them
-        Base.metadata.create_all(self.engine)
+        ORMBase.metadata.create_all(self.engine)
+
+    def clear_db_values(self):
+        for tbl in reversed(ORMBase.metadata.sorted_tables):
+            self.engine.execute(tbl.delete())
 
     @staticmethod
     def add_own_encoders(conn, cursor, query, *args):
@@ -63,72 +65,32 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _add_instance(self, instance: BaseTable) -> int:
-        """Handles all single instance additions to the database
-
-        Args:
-            instance (BaseTable): instance of db_table that inherits Base
-
-        Returns:
-            int: instance id in table
-        """
-        self.session.add(instance)
-        self.session.commit()
-        self.session.refresh(instance)
-        return instance.id
-
-    def add_player(self, player: PlayerCreateSchema) -> int:
-        """Add player to database
-
-        Args:
-            player (PlayerCreateSchema): instance of player to add
-
-        Returns:
-            int: player id of added player
-        """
-        player = PlayerTable(**player.dict())
-        return self._add_instance(player)
-
-    def add_tournament(self, tournament: TournamentCreateSchema) -> int:
-        """Add tournament to database
-
-        Args:
-            tournament (TournamentCreateSchema): instance of tournament to add
-
-        Returns:
-            int: tournament id of added tournament
-        """
-        tournament = TournamentTable(**tournament.dict())
-        return self._add_instance(tournament)
-
-    def add_game(self, game: GameCreateSchema) -> int:
-        """Add game to database
-
-        Args:
-            game (GameCreateSchema): instance of game to add
-            tournament_id (int): id of tournament game played in
-
-        Returns:
-            int: game id of added game
-        """
-        game = GameTable(**game.dict())
-        return self._add_instance(game)
-
-    def add_performance(self, performance: PerformanceCreateSchema) -> int:
-        """Add performance to database
-
-        Args:
-            performance (PerformanceCreateSchema): instance of performance to add
-            player_id (int): id of player who the performance relates to 
-            game_id (int): id of game performance relates ot 
-
-        Returns:
-            int: performance id of added performance
-        """
-        if performance.won:
-            return self._add_instance(WPerformanceTable(**performance.dict()))
+    def ingest_objects(self, objects: List[BaseModel], table: ORMBase, bulk: bool = False) -> None:
+        if bulk:
+            objects = [table(**obj.dict()) for obj in objects]
+            self.session.add_all(objects)
+            self.session.commit()
         else:
-            return self._add_instance(LPerformanceTable(**performance.dict()))
+            for obj in objects:
+                try:
+                    self._add_object(obj, table)
+                except FlushError:
+                    self.session.rollback()
+                    self._update_object(obj, table)
+
+    def _add_object(self, obj: BaseModel, table: ORMBase) -> None:
+        self.session.add(table(**obj.dict()))
+        self.session.commit()
+
+    def _update_object(self, obj: BaseModel, table: ORMBase) -> None:
+        self.session.query(table).\
+            filter(table.id == obj.id).update(obj.dict())
+        self.session.commit()
+
+    def add_last_ingested_sha(self, sha: str) -> None:
+        github = ORMGithub(**GithubCreate(sha=sha).dict())
+        self.session.add(github)
+        self.session.commit()
 
 
 class QueryDB:
@@ -139,14 +101,13 @@ class QueryDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_player_by_id(self, id: int) -> PlayerTable:
-        return self.session.query(PlayerTable).\
-            filter(PlayerTable.id == id).one_or_none()
+    def get_object_by_id(self, id: Union[int, str], table: ORMBase) -> ORMBase:
+        return self.session.query(table).\
+            filter(table.id == id).one_or_none()
 
-    def get_tournament_by_id(self, id: int) -> TournamentTable:
-        return self.session.query(TournamentTable).\
-            filter(TournamentTable.id == id).one_or_none()
-
-    def get_game_by_id(self, id: int) -> GameTable:
-        return self.session.query(GameTable).\
-            filter(GameTable.id == id).one_or_none()
+    def get_last_ingested_sha(self) -> str:
+        try:
+            return self.session.query(ORMGithub).\
+                order_by(ORMGithub.date.desc()).first().sha
+        except AttributeError:
+            return
