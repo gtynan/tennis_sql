@@ -59,13 +59,18 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def ingest_objects(self, objects: List[BaseModel], table: BaseTable) -> None:
-        for obj in objects:
-            try:
-                self._add_object(obj, table)
-            except FlushError:
-                self.session.rollback()
-                self._update_object(obj, table)
+    def ingest_objects(self, objects: List[BaseModel], table: BaseTable, bulk: bool = False) -> None:
+        if bulk:
+            objects = [table(**obj.dict()) for obj in objects]
+            self.session.add_all(objects)
+            self.session.commit()
+        else:
+            for obj in objects:
+                try:
+                    self._add_object(obj, table)
+                except FlushError:
+                    self.session.rollback()
+                    self._update_object(obj, table)
 
     def _add_object(self, obj: BaseModel, table: BaseTable) -> None:
         self.session.add(table(**obj.dict()))
