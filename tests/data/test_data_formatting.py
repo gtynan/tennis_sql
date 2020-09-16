@@ -2,17 +2,18 @@ import pytest
 from datetime import datetime
 
 from src.data.data_formatting import format_player, format_tournament, format_game, format_performances, raw_game_to_instances
-from src.db.schema.player import PlayerCreateSchema
-from src.db.schema.game import GameCreateSchema
-from src.db.schema.tournament import TournamentCreateSchema
-from src.db.schema.performance import PerformanceCreateSchema
+
+from src.db.models.pydantic.player import PlayerCreate
+from src.db.models.pydantic.game import GameCreate
+from src.db.models.pydantic.tournament import TournamentCreate
+from src.db.models.pydantic.performance import PerformanceCreate
 
 
 @pytest.mark.slow
 def test_format_player(sample_players):
     player = format_player(sample_players.iloc[0])
 
-    assert isinstance(player, PlayerCreateSchema)
+    assert isinstance(player, PlayerCreate)
     assert player.id == sample_players.loc[0, '200000']
     assert player.first_name == sample_players.loc[0, 'X']
     assert player.last_name == sample_players.loc[0, 'X.1']
@@ -28,17 +29,17 @@ def test_raw_game_to_instances(sample_games):
     game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
 
     tournament, game, w_perf, l_perf = raw_game_to_instances(game)
-    assert isinstance(tournament, TournamentCreateSchema)
-    assert isinstance(game, GameCreateSchema)
-    assert isinstance(w_perf, PerformanceCreateSchema)
-    assert isinstance(l_perf, PerformanceCreateSchema)
+    assert isinstance(tournament, TournamentCreate)
+    assert isinstance(game, GameCreate)
+    assert isinstance(w_perf, PerformanceCreate)
+    assert isinstance(l_perf, PerformanceCreate)
 
 
 @pytest.mark.slow
 def test_format_tournament(sample_games):
     tournament = format_tournament(sample_games.iloc[0])
 
-    assert isinstance(tournament, TournamentCreateSchema)
+    assert isinstance(tournament, TournamentCreate)
     assert tournament.id == sample_games.loc[0, 'tourney_id']
     assert tournament.name == sample_games.loc[0, 'tourney_name']
     assert tournament.surface == sample_games.loc[0, 'surface']
@@ -52,7 +53,7 @@ def test_format_tournament(sample_games):
 def test_format_game(sample_games):
     game = format_game(sample_games.iloc[0])
 
-    assert isinstance(game, GameCreateSchema)
+    assert isinstance(game, GameCreate)
     assert game.tournament_id == sample_games.loc[0, 'tourney_id']
     assert game.id == f"{sample_games.loc[0, 'tourney_id']}_{sample_games.loc[0, 'match_num']}"
     assert game.round == sample_games.loc[0, 'round']
@@ -67,8 +68,8 @@ def test_format_performances(sample_games):
 
     assert w_perf.game_id == l_perf.game_id == 'test_game'
 
-    assert isinstance(w_perf, PerformanceCreateSchema)
-    assert isinstance(l_perf, PerformanceCreateSchema)
+    assert isinstance(w_perf, PerformanceCreate)
+    assert isinstance(l_perf, PerformanceCreate)
 
     assert w_perf.player_id == game['w_id']
     assert w_perf.won

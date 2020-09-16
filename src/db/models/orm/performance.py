@@ -1,20 +1,17 @@
-from typing import Optional
-
 from sqlalchemy import Column, Integer, ForeignKey, Boolean, String, Float
 from sqlalchemy.orm import relationship
 
-from .base import BaseTable, BaseModel, CreateModel
-from .player import PlayerSchema
+from .base import Base
 
 
-class _PerformanceTable(BaseTable):
+class _Performance(Base):
     """SQL alchemy table structure for Performance (SHOULD NEVER BE DIRECTLY INSTANCIATED USE CHILD)
     """
     __tablename__ = 'performance'
 
     # player who's performance it relates to
     player_id = Column(Integer, ForeignKey("player.id"))
-    player = relationship("PlayerTable", uselist=False, foreign_keys=player_id)
+    player = relationship("Player", uselist=False, foreign_keys=player_id)
 
     # player game stats
     aces = Column(Float)
@@ -35,7 +32,7 @@ class _PerformanceTable(BaseTable):
     }
 
 
-class WPerformanceTable(_PerformanceTable):
+class WPerformance(_Performance):
     """SQL alchemy table structure for winning performance 
     """
     __tablename__ = 'w_performance'
@@ -44,14 +41,14 @@ class WPerformanceTable(_PerformanceTable):
 
     # game winning performance relates to
     game_id = Column(String(50), ForeignKey('game.id'))
-    game = relationship("GameTable", back_populates="w_performance", uselist=False)
+    game = relationship("Game", back_populates="w_performance", uselist=False)
 
     __mapper_args__ = {
         'polymorphic_identity': True  # won = True
     }
 
 
-class LPerformanceTable(_PerformanceTable):
+class LPerformance(_Performance):
     """SQL alchemy table structure for losing performance 
     """
     __tablename__ = 'l_performance'
@@ -60,47 +57,8 @@ class LPerformanceTable(_PerformanceTable):
 
     # game losing performance relates to
     game_id = Column(String(50), ForeignKey('game.id'))
-    game = relationship("GameTable", back_populates="l_performance", uselist=False)
+    game = relationship("Game", back_populates="l_performance", uselist=False)
 
     __mapper_args__ = {
         'polymorphic_identity': False  # won = False
     }
-
-
-class PerformanceBaseSchema(BaseModel):
-    """Pydantic base schema for performances
-    """
-    aces: Optional[float]
-    double_faults: Optional[float]
-    serve_points: Optional[float]
-    first_serve_in: Optional[float]
-    first_serve_won: Optional[float]
-    second_serve_won: Optional[float]
-    serve_games: Optional[float]
-    break_points_faced: Optional[float]
-    break_points_saved: Optional[float]
-
-
-class PerformanceCreateSchema(PerformanceBaseSchema, CreateModel):
-    """Pydantic create schema for performances
-    """
-    game_id: str
-    player_id: int
-    # used in db.py add_performance() to determine which table to insert to
-    won: bool
-
-    # override CreateModel comprison
-    def __eq__(self, other):
-        return (self.game_id == other.game_id) and (self.won == other.won)
-
-    def __lt__(self, other):
-        return self.game_id < other.game_id
-
-
-class PerformanceSchema(PerformanceBaseSchema):
-    """Pydantic object schema for performances
-    """
-    player: PlayerSchema
-
-    class Config:
-        orm_mode = True

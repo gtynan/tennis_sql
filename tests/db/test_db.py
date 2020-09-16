@@ -5,14 +5,15 @@ import time
 
 from src.db.db import CommandDB, DBClient, QueryDB
 
-from src.db.schema.player import PlayerTable, PlayerCreateSchema, PlayerSchema
-from src.db.schema.tournament import TournamentTable, TournamentCreateSchema, TournamentSchema
-from src.db.schema.github import GithubTable
+from src.db.models.orm.player import Player as ORMPlayer
+from src.db.models.pydantic.player import Player, PlayerCreate
+
+from src.db.models.orm.github import Github as ORMGithub
 
 
 @pytest.fixture(scope='module')
-def sample_player() -> PlayerCreateSchema:
-    return PlayerCreateSchema(id=200001, first_name='Tom', last_name='Jones', nationality='IRE', dob=datetime.datetime(2000, 1, 1), hand='R')
+def sample_player() -> PlayerCreate:
+    return PlayerCreate(id=200001, first_name='Tom', last_name='Jones', nationality='IRE', dob=datetime.datetime(2000, 1, 1), hand='R')
 
 
 class TestDBClient:
@@ -32,12 +33,12 @@ class TestCommandDB:
 
     def test_ingest_objects(self, db_client, command_db, sample_player):
         sample_player.first_name = 'Jerry'
-        command_db.ingest_objects([sample_player], PlayerTable)
+        command_db.ingest_objects([sample_player], ORMPlayer)
 
-        queried_player = db_client.session.query(PlayerTable).\
-            filter(PlayerTable.id == sample_player.id).one()
+        queried_player = db_client.session.query(ORMPlayer).\
+            filter(ORMPlayer.id == sample_player.id).one()
         # will raise error if not of expected schema
-        PlayerSchema.from_orm(queried_player)
+        Player.from_orm(queried_player)
 
         assert queried_player.id == sample_player.id
         assert queried_player.first_name == sample_player.first_name
@@ -45,14 +46,13 @@ class TestCommandDB:
         assert queried_player.nationality == sample_player.nationality
         assert queried_player.dob == sample_player.dob
         assert queried_player.hand == sample_player.hand
-        assert queried_player.name == sample_player.first_name + " " + sample_player.last_name
 
         # ingesting this player again will force function to update instead of add
         sample_player.first_name = 'Tom'
-        command_db.ingest_objects([sample_player], PlayerTable)
+        command_db.ingest_objects([sample_player], ORMPlayer)
 
-        queried_player = db_client.session.query(PlayerTable).\
-            filter(PlayerTable.id == sample_player.id).one()
+        queried_player = db_client.session.query(ORMPlayer).\
+            filter(ORMPlayer.id == sample_player.id).one()
 
         assert queried_player.id == sample_player.id
         assert queried_player.first_name == 'Tom'
@@ -62,8 +62,8 @@ class TestCommandDB:
         date = datetime.datetime.now()
         command_db.add_last_ingested_sha(sha)
 
-        github_sha = db_client.session.query(GithubTable).\
-            filter(GithubTable.sha == sha).one()
+        github_sha = db_client.session.query(ORMGithub).\
+            filter(ORMGithub.sha == sha).one()
 
         assert github_sha.date.day == date.day
         assert github_sha.date.month == date.month
@@ -77,11 +77,10 @@ class TestQueryDB:
         return QueryDB(db_client.session)
 
     def test_get_object_by_id(self, query_db, sample_player):
-        player = query_db.get_object_by_id(sample_player.id, PlayerTable)
+        player = query_db.get_object_by_id(sample_player.id, ORMPlayer)
 
-        assert isinstance(player, PlayerTable)
+        assert isinstance(player, ORMPlayer)
         assert player.id == sample_player.id
-        assert player.name == sample_player.first_name + " " + sample_player.last_name
         assert player.dob == sample_player.dob
 
     def test_get_last_ingested_sha(self, db_client, query_db):
@@ -90,7 +89,7 @@ class TestQueryDB:
 
         sha = 'TESTSHA102'
         # adding a second sha to assert it is preferred to one added during TestCommandDB
-        db_client.session.add(GithubTable(sha=sha))
+        db_client.session.add(ORMGithub(sha=sha))
         queried_sha = query_db.get_last_ingested_sha()
 
         assert queried_sha == sha

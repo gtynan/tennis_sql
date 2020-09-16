@@ -13,17 +13,18 @@ from .data.data_formatting import format_player, raw_game_to_instances
 
 from .db.db import QueryDB, CommandDB, DBClient
 from .db.schema.base import BaseModel, Base
-from .db.schema.player import PlayerTable
-from .db.schema.tournament import TournamentTable
-from .db.schema.game import GameTable
-from .db.schema.performance import WPerformanceTable, LPerformanceTable
+
+from .db.models.orm.player import Player
+from .db.models.orm.tournament import Tournament
+from .db.models.orm.game import Game
+from .db.models.orm.performance import WPerformance, LPerformance
 
 from .constants import SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, UPDATED_COL
 
 
 def add_player_data(command_db: CommandDB, player_data: pd.DataFrame, bulk: bool = False) -> None:
     player_data = player_data.apply(lambda player_row: format_player(player_row), axis=1).values
-    command_db.ingest_objects(np.unique(player_data), PlayerTable, bulk=bulk)
+    command_db.ingest_objects(np.unique(player_data), Player, bulk=bulk)
 
 
 def add_game_data(command_db: CommandDB, game_data: pd.DataFrame, bulk: bool = False) -> None:
@@ -35,10 +36,10 @@ def add_game_data(command_db: CommandDB, game_data: pd.DataFrame, bulk: bool = F
     tournaments, games, w_performances, l_performances = (formatted_game_data[:, 0],
                                                           formatted_game_data[:, 1], formatted_game_data[:, 2], formatted_game_data[:, 3])
 
-    command_db.ingest_objects(np.unique(tournaments), TournamentTable, bulk=bulk)
-    command_db.ingest_objects(np.unique(games), GameTable, bulk=bulk)
-    command_db.ingest_objects(np.unique(w_performances), WPerformanceTable, bulk=bulk)
-    command_db.ingest_objects(np.unique(l_performances), LPerformanceTable, bulk=bulk)
+    command_db.ingest_objects(np.unique(tournaments), Tournament, bulk=bulk)
+    command_db.ingest_objects(np.unique(games), Game, bulk=bulk)
+    command_db.ingest_objects(np.unique(w_performances), WPerformance, bulk=bulk)
+    command_db.ingest_objects(np.unique(l_performances), LPerformance, bulk=bulk)
 
 
 def get_updated_data(github_sha: str, db_sha: str) -> Tuple[pd.DataFrame]:

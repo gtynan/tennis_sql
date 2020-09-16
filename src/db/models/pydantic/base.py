@@ -1,20 +1,14 @@
-from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
-from sqlalchemy import Column, Integer
-from pydantic import BaseModel, validator
+from pydantic import BaseModel as Base, validator
 import numpy as np
 
-Base: DeclarativeMeta = declarative_base()
+
+class BaseModel(Base):
+
+    class Config:
+        orm_mode = True
 
 
-class BaseTable(Base):
-    """SQL Alchemy abstract base table to ensure all tables have an id column
-    """
-    __abstract__ = True
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-
-
-class CreateModel(BaseModel):
+class CreateModel(Base):
 
     @validator('*')
     def nan_to_none(cls, v, field):

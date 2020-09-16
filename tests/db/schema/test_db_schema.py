@@ -2,16 +2,16 @@ import pytest
 import numpy as np
 from sqlalchemy import inspect
 
-from src.db.schema.player import PlayerTable
-from src.db.schema.game import GameTable
-from src.db.schema.performance import _PerformanceTable, WPerformanceTable, LPerformanceTable
-from src.db.schema.tournament import TournamentTable
-from src.db.schema.github import GithubTable
+from src.db.models.orm.player import Player
+from src.db.models.orm.game import Game
+from src.db.models.orm.performance import _Performance, WPerformance, LPerformance
+from src.db.models.orm.tournament import Tournament
+from src.db.models.orm.github import Github
 
 # TODO dynamically pull all classes from db_models
 # tables to check for in TestDBClient test_schema
-TABLE_CLASSES = [PlayerTable(), GameTable(), _PerformanceTable(), WPerformanceTable(),
-                 LPerformanceTable(), TournamentTable(), GithubTable()]
+TABLE_CLASSES = [Player(), Game(), _Performance(), WPerformance(),
+                 LPerformance(), Tournament(), Github()]
 
 
 class TestDBModels:
