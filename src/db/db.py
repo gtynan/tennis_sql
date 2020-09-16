@@ -5,16 +5,11 @@ import numpy as np
 from sqlalchemy import event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound, FlushError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import FlushError
 
 from ..settings.db import DB_CONFIG
 
 from .schema.base import BaseTable, Base, BaseModel
-from .schema.player import PlayerCreateSchema, PlayerTable
-from .schema.tournament import TournamentCreateSchema, TournamentTable
-from .schema.game import GameCreateSchema, GameTable
-from .schema.performance import PerformanceCreateSchema, WPerformanceTable, LPerformanceTable
 from .schema.github import GithubCreateSchema, GithubTable, GithubSchema
 
 
