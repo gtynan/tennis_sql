@@ -5,25 +5,9 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import io
 
-from ..constants import UPDATED_COL
-
 
 def get_game_id(tournament_id: str, match_num: str) -> str:
     return f'{tournament_id}_{match_num}'
-
-
-def infer_dob(age: str, t_date: str, data: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, datetime]:
-    """Convert age as a decimal to date of birth using tournament start date
-
-    Args:
-        age (str):column containing player age in decimal form
-        t_date (str): column containing tournament start date
-        data (Union[pd.Series, pd.DataFrame]): data object
-
-    Returns:
-        Union[pd.Series, datetime]: inferred ages
-    """
-    return data[t_date] - ((data[age]*365.24).round(decimals=0)).astype('timedelta64[D]')
 
 
 @overload
@@ -70,16 +54,12 @@ def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
     rows = raw_string.split('\n')[1:]
 
     # can be one of ' ', -, +
-    changes = [row[0] for row in rows]
+    changes = np.array([row[0] for row in rows])
     rows = [row[1:] for row in rows]
 
     # convert to dataframe
     df = pd.read_csv(io.StringIO('\n'.join(rows)), names=columns, header=None)
 
-    df[UPDATED_COL] = changes
     # rows denoted - are old rows who's values have been replaced with rows denoted as +
-    df = df[df.updated != '-']
-    df.loc[df.updated == '+', UPDATED_COL] = True
-    df.loc[df.updated != True, UPDATED_COL] = False
-
+    df = df.loc[changes != '-']
     return df.reset_index(drop=True)

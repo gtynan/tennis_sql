@@ -4,7 +4,6 @@ WTA_URL = "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_
 ITF_URL = "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_qual_itf_{}.csv"
 
 SOURCE_COL = 'source'
-UPDATED_COL = 'updated'
 
 WTA_IDENTIFIER = 'wta'
 ITF_IDENTIFIER = 'ITF'

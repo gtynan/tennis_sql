@@ -4,7 +4,7 @@ import requests
 from requests.exceptions import HTTPError
 from io import StringIO
 
-from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, UPDATED_COL
+from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER
 
 
 def get_raw_players(n_players: int = None) -> pd.DataFrame:
@@ -55,8 +55,6 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
 
                     new_data = pd.read_csv(StringIO(req.text))
                     new_data[SOURCE_COL] = identifier
-                    # flags whether to add or update object
-                    new_data[UPDATED_COL] = False
 
                     if data is None:
                         data = new_data

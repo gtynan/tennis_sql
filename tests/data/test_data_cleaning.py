@@ -3,23 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from src.data.data_cleaning import infer_dob, to_datetime, raw_changes_to_df
-from src.constants import UPDATED_COL
-
-
-def test_infer_dob():
-    age_col, t_date_col = 'age', 't_date'
-    # dataframe of ages and tourney start dates
-    data = pd.DataFrame(data=[[38.2778918549, datetime(2020, 1, 6)],
-                              [23.6167008898, datetime(2009, 2, 7)],
-                              [22.6830937714, datetime(1978, 12, 25)]],
-                        columns=[age_col, t_date_col])
-    # expected date of births
-    e_dob = pd.Series([datetime(1981, 9, 26), datetime(1985, 6, 27),  datetime(1956, 4, 19)])
-
-    dob = infer_dob(age_col, t_date_col, data)
-
-    pd.testing.assert_series_equal(e_dob, dob)
+from src.data.data_cleaning import to_datetime, raw_changes_to_df
 
 
 def test_to_datetime():
@@ -42,7 +26,3 @@ def test_raw_changes_to_df():
     # raw changes lines start with 1 of (' ' -  +) assert that is removed
     initial_values = [col_1[0] for col_1 in df.loc[:, 0].values]
     assert ~np.isin([' ', '-', '+'], initial_values).all()
-
-    # row 1 was a new addition so updated should not be flagged
-    # row 2 and 3 was the same row so the row denoted - was removed and + flagged as updated
-    np.testing.assert_array_equal(df[UPDATED_COL].values, [False, True])
