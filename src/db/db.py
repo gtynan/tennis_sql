@@ -5,7 +5,8 @@ import numpy as np
 from sqlalchemy import event
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound, FlushError
+from sqlalchemy.exc import IntegrityError
 
 from ..settings.db import DB_CONFIG
 
@@ -63,15 +64,21 @@ class CommandDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def add_instances(self, instances: List[BaseModel], table: BaseTable) -> None:
-        instances = [table(**instance.dict()) for instance in instances]
-        self.session.add_all(instances)
+    def ingest_objects(self, objects: List[BaseModel], table: BaseTable) -> None:
+        for obj in objects:
+            try:
+                self._add_object(obj, table)
+            except FlushError:
+                self.session.rollback()
+                self._update_object(obj, table)
+
+    def _add_object(self, obj: BaseModel, table: BaseTable) -> None:
+        self.session.add(table(**obj.dict()))
         self.session.commit()
 
-    def update_instances(self, objects: List[BaseModel], table: BaseTable) -> None:
-        for obj in objects:
-            self.session.query(table).\
-                filter(table.id == obj.id).update(obj.dict())
+    def _update_object(self, obj: BaseModel, table: BaseTable) -> None:
+        self.session.query(table).\
+            filter(table.id == obj.id).update(obj.dict())
         self.session.commit()
 
     def add_last_ingested_sha(self, sha: str) -> int:

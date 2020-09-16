@@ -30,20 +30,32 @@ class TestCommandDB:
     def command_db(self, db_client) -> CommandDB:
         return CommandDB(db_client.session)
 
-    def test_add_instances(self, db_client, command_db, sample_player):
-        command_db.add_instances([sample_player], PlayerTable)
+    def test_ingest_objects(self, db_client, command_db, sample_player):
+        sample_player.first_name = 'Jerry'
+        command_db.ingest_objects([sample_player], PlayerTable)
 
         queried_player = db_client.session.query(PlayerTable).\
             filter(PlayerTable.id == sample_player.id).one()
         # will raise error if not of expected schema
         PlayerSchema.from_orm(queried_player)
 
+        assert queried_player.id == sample_player.id
         assert queried_player.first_name == sample_player.first_name
         assert queried_player.last_name == sample_player.last_name
         assert queried_player.nationality == sample_player.nationality
         assert queried_player.dob == sample_player.dob
         assert queried_player.hand == sample_player.hand
         assert queried_player.name == sample_player.first_name + " " + sample_player.last_name
+
+        # ingesting this player again will force function to update instead of add
+        sample_player.first_name = 'Tom'
+        command_db.ingest_objects([sample_player], PlayerTable)
+
+        queried_player = db_client.session.query(PlayerTable).\
+            filter(PlayerTable.id == sample_player.id).one()
+
+        assert queried_player.id == sample_player.id
+        assert queried_player.first_name == 'Tom'
 
     def test_add_last_ingested_sha(self, db_client,  command_db):
         sha = 'TESTSHA101'
