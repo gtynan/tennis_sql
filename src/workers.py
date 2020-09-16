@@ -12,7 +12,6 @@ from .data.data_cleaning import to_datetime, raw_changes_to_df
 from .data.data_formatting import format_player, raw_game_to_instances
 
 from .db.db import QueryDB, CommandDB, DBClient
-from .db.schema.base import BaseModel, Base
 
 from .db.models.orm.player import Player
 from .db.models.orm.tournament import Tournament
@@ -66,7 +65,7 @@ def get_updated_data(github_sha: str, db_sha: str) -> Tuple[pd.DataFrame]:
     return player_data, game_data
 
 
-async def ingest_data(ctx, year_from: int = 1967, year_to: int = 1970):
+async def ingest_data(ctx, year_from: int = 1967, year_to: int = datetime.now().year):
     db_client = DBClient()
     db_client.generate_schema()
 
@@ -75,7 +74,9 @@ async def ingest_data(ctx, year_from: int = 1967, year_to: int = 1970):
 
     # nothing ingested yet (i.e. first run)
     if last_ingested_sha is None:
-        # TODO clear tables
+        # clear before bulk adding to avoid any conflicts
+        db_client.clear_db_values()
+
         player_data = get_raw_players()
         add_player_data(command_db, player_data, bulk=True)
 

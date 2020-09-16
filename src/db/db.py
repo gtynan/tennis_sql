@@ -48,6 +48,10 @@ class DBClient:
         # any class inheriting Base that does not have a table in the db will have one generated for them
         ORMBase.metadata.create_all(self.engine)
 
+    def clear_db_values(self):
+        for tbl in reversed(ORMBase.metadata.sorted_tables):
+            self.engine.execute(tbl.delete())
+
     @staticmethod
     def add_own_encoders(conn, cursor, query, *args):
         cursor.connection.encoders[np.int64] = lambda value, encoders: int(value)
