@@ -64,6 +64,9 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
                 except HTTPError:
                     # TODO add to logger
                     print(f'NOT FOUND: {url.format(year)}')
+                except AttributeError:
+                    # basically if ITF_URL is None
+                    pass
         return data
 
 
