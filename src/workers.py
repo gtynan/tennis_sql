@@ -19,7 +19,7 @@ from .db.models.orm.tournament import Tournament
 from .db.models.orm.game import Game
 from .db.models.orm.performance import WPerformance, LPerformance
 
-from .constants import SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, UPDATED_COL
+from .constants import SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER
 
 
 def add_player_data(command_db: CommandDB, player_data: pd.DataFrame, bulk: bool = False) -> None:
@@ -67,7 +67,6 @@ def get_updated_data(github_sha: str, db_sha: str) -> Tuple[pd.DataFrame]:
 
 
 async def ingest_data(ctx, year_from: int = 1967, year_to: int = 1970):
-    print('starting')
     db_client = DBClient()
     db_client.generate_schema()
 
@@ -97,5 +96,5 @@ class WorkerSettings:
     redis_settings = RedisSettings()
     cron_jobs = [
         # will run once daily
-        cron(ingest_data, second=10,  run_at_startup=True)
+        cron(ingest_data, hour=0, minute=0, second=0,  run_at_startup=True)
     ]
