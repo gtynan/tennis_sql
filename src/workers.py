@@ -17,6 +17,8 @@ from .db.models.orm.tournament import Tournament
 from .db.models.orm.game import Game
 from .db.models.orm.performance import WPerformance, LPerformance
 
+from .constants import INGEST_YEAR_FROM, INGEST_YEAR_TO
+
 
 def add_player_data(command_db: CommandDB, player_data: pd.DataFrame, bulk: bool = False) -> None:
     player_data = player_data.apply(lambda player_row: format_player(player_row), axis=1).values
@@ -37,7 +39,7 @@ def add_game_data(command_db: CommandDB, game_data: pd.DataFrame, bulk: bool = F
     command_db.ingest_objects(np.unique(l_performances), LPerformance, bulk=bulk)
 
 
-async def ingest_data(ctx, year_from: int = 1967, year_to: int = 1968):  # datetime.now().year):
+async def ingest_data(ctx, year_from: int = INGEST_YEAR_FROM, year_to: int = INGEST_YEAR_TO):  # datetime.now().year):
     db_client = DBClient()
     db_client.generate_schema()
 
