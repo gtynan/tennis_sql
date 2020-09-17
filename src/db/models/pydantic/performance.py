@@ -31,7 +31,7 @@ class PerformanceCreate(PerformanceBase, CreateModel):
         return (self.game_id == other.game_id) and (self.won == other.won)
 
     def __lt__(self, other):
-        return self.game_id < other.game_id
+        return (self.game_id < other.game_id) or (self.game_id == other.game_id and self.won < other.won)
 
 
 class Performance(PerformanceBase):
