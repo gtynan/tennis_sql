@@ -1,17 +1,16 @@
 from sqlalchemy import Column, Integer, ForeignKey, Boolean, String, Float
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declared_attr
 
 from .base import Base
 
 
-class _Performance(Base):
-    """SQL alchemy table structure for Performance (SHOULD NEVER BE DIRECTLY INSTANCIATED USE CHILD)
+class PerformanceMixin:
+    """Mixin to declare shared attributes between winning and losing performance
     """
-    __tablename__ = 'performance'
-
-    # player who's performance it relates to
-    player_id = Column(Integer, ForeignKey("player.id"))
-    player = relationship("Player", uselist=False, foreign_keys=player_id)
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
 
     # player game stats
     aces = Column(Float)
@@ -27,38 +26,31 @@ class _Performance(Base):
     # outcome
     won = Column(Boolean, nullable=False)
 
-    __mapper_args__ = {
-        'polymorphic_on': won,
-    }
+    @declared_attr
+    def player_id(cls):
+        # player who's performance it relates to
+        return Column(Integer, ForeignKey("player.id"))
+
+    @declared_attr
+    def player(cls):
+        return relationship("Player", uselist=False)
 
 
-class WPerformance(_Performance):
+class WPerformance(PerformanceMixin, Base):
     """SQL alchemy table structure for winning performance 
     """
-    __tablename__ = 'w_performance'
-
-    id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # game winning performance relates to
     game_id = Column(String(50), ForeignKey('game.id'))
     game = relationship("Game", back_populates="w_performance", uselist=False)
 
-    __mapper_args__ = {
-        'polymorphic_identity': True  # won = True
-    }
 
-
-class LPerformance(_Performance):
+class LPerformance(PerformanceMixin, Base):
     """SQL alchemy table structure for losing performance 
     """
-    __tablename__ = 'l_performance'
-
-    id = Column(Integer, ForeignKey(f'performance.id'), primary_key=True)
+    id = Column(Integer, primary_key=True)
 
     # game losing performance relates to
     game_id = Column(String(50), ForeignKey('game.id'))
     game = relationship("Game", back_populates="l_performance", uselist=False)
-
-    __mapper_args__ = {
-        'polymorphic_identity': False  # won = False
-    }
