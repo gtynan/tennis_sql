@@ -5,8 +5,9 @@ SQLAlchemyBase: DeclarativeMeta = declarative_base()
 
 
 class Base(SQLAlchemyBase):
-    """SQL Alchemy abstract base table to ensure all tables have an id column
+    """SQL Alchemy custom base table to ensure all tables have an id column
     """
-    __abstract__ = True
-
     id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+Base = declarative_base(cls=Base)
