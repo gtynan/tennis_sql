@@ -25,4 +25,4 @@ def sample_players():
 
 @pytest.fixture(scope='session')
 def sample_games():
-    return get_raw_games(2020, 2020, n_games=5)
+    return get_raw_games(2020, 2020).head()
