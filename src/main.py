@@ -12,8 +12,6 @@ from .db.models.pydantic.game import Game
 
 app = FastAPI()
 
-DBClient().generate_schema()
-
 
 # dependency
 def get_query_db() -> Generator[QueryDB, None, None]:
