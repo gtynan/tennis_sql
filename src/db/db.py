@@ -54,6 +54,7 @@ class DBClient:
         """
         for tbl in reversed(ORMBase.metadata.sorted_tables):
             self.engine.execute(tbl.delete())
+        self.session.commit()
 
     @staticmethod
     def add_own_encoders(conn, cursor, query, *args):
