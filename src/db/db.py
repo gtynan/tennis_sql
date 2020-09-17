@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 from datetime import datetime
 import numpy as np
 
@@ -112,7 +112,7 @@ class QueryDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_object_by_id(self, id: Union[int, str], table: ORMBase) -> ORMBase:
+    def get_object_by_id(self, id: Union[int, str], table: ORMBase) -> Optional[ORMBase]:
         """Given id and table to look in will return object if one
 
         Args:
@@ -125,9 +125,9 @@ class QueryDB:
         return self.session.query(table).\
             filter(table.id == id).one_or_none()
 
-    def get_last_ingested_sha(self) -> str:
+    def get_last_ingested_sha(self) -> Optional[str]:
         try:
             return self.session.query(ORMGithub).\
                 order_by(ORMGithub.date.desc()).first().sha
         except AttributeError:
-            return
+            return None
