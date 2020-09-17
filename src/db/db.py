@@ -21,7 +21,7 @@ class DBClient:
                  db_user: str = DB_CONFIG['db_user'],
                  db_pwd: str = DB_CONFIG['db_pwd'],
                  db_host: str = DB_CONFIG['db_host'],
-                 db_port: int = DB_CONFIG['db_port'],
+                 db_port: str = DB_CONFIG['db_port'],
                  db_name: str = DB_CONFIG['db_name']) -> None:
         """Create connection to database
 
