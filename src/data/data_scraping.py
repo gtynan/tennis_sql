@@ -62,7 +62,7 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
             except AttributeError:
                 # basically if ITF_URL is None
                 pass
-        return data
+    return data
 
 
 def get_last_commit_sha() -> str:
