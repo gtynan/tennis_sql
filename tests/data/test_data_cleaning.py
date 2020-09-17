@@ -3,7 +3,9 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from src.data.data_cleaning import to_datetime, raw_changes_to_df, get_game_id
+from src.data.data_scraping import get_file_changes
+from src.data.data_cleaning import to_datetime, raw_changes_to_df, get_game_id, clean_file_changes
+from src.constants import SOURCE_COL, WTA_IDENTIFIER
 
 
 def test_get_game_id():
@@ -35,3 +37,16 @@ def test_raw_changes_to_df():
     # raw changes lines start with 1 of (' ' -  +) assert that is removed
     initial_values = [col_1[0] for col_1 in df.loc[:, 0].values]
     assert ~np.isin([' ', '-', '+'], initial_values).all()
+
+
+def test_clean_file_changes():
+    file_changes = get_file_changes('ca6476a75d180758723ac892c56bf334343053ab',
+                                    'c6b74fbccd7a0eae5604a2a9e06da2e3d79a2c65')
+
+    player_data, game_data = clean_file_changes(file_changes, None, None)
+
+    # within this update only wta games were updated, no ITF or players
+    assert player_data is None
+    assert isinstance(game_data, pd.DataFrame)
+    assert all(game_data[SOURCE_COL] == WTA_IDENTIFIER)
+    print(game_data)
