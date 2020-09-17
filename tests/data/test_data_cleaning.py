@@ -3,7 +3,12 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
-from src.data.data_cleaning import to_datetime, raw_changes_to_df
+from src.data.data_cleaning import to_datetime, raw_changes_to_df, get_game_id
+
+
+def test_get_game_id():
+    t_id, m_num = 'Test_T', 1
+    assert get_game_id(t_id, m_num) == f'{t_id}_{m_num}'
 
 
 def test_to_datetime():
@@ -14,6 +19,10 @@ def test_to_datetime():
     # ensure handles series
     pd.testing.assert_series_equal(to_datetime(pd.Series([20000101, 19901009])),
                                    pd.Series([datetime(2000, 1, 1), datetime(1990, 10, 9)]))
+
+    # ensure handles None and nans
+    assert to_datetime(None) is None
+    assert to_datetime(np.nan) is None
 
 
 def test_raw_changes_to_df():

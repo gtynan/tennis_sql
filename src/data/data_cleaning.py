@@ -2,11 +2,19 @@ from typing import Union, overload, List, Tuple
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import io
 
 
-def get_game_id(tournament_id: str, match_num: str) -> str:
+def get_game_id(tournament_id: str, match_num: int) -> str:
+    """Generate unique game_id
+
+    Args:
+        tournament_id (str): id of tournament game played in
+        match_num (int): game number within tournament
+
+    Returns:
+        str: game_id
+    """
     return f'{tournament_id}_{match_num}'
 
 
@@ -28,8 +36,6 @@ def to_datetime(date: Union[pd.Series, int, float, str]) -> Union[pd.Series, dat
     format = '%Y%m%d'
 
     if isinstance(date, pd.Series):
-        if isinstance(date.dtype, datetime):
-            return date
         return pd.to_datetime(date, format=format)
     else:
         if isinstance(date, datetime):
