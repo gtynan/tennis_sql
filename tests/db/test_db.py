@@ -2,13 +2,23 @@ import pytest
 import datetime
 import os
 import time
+import numpy as np
+from sqlalchemy import inspect
 
 from src.db.db import CommandDB, DBClient, QueryDB
 
 from src.db.models.orm.player import Player as ORMPlayer
+from src.db.models.orm.game import Game as ORMGame
+from src.db.models.orm.performance import WPerformance as ORMWPerformance, LPerformance as ORMLPerformance
+from src.db.models.orm.tournament import Tournament as ORMTournament
+from src.db.models.orm.github import Github as ORMGithub
+
 from src.db.models.pydantic.player import Player, PlayerCreate
 
-from src.db.models.orm.github import Github as ORMGithub
+
+# tables to check for in TestDBClient test_schema
+TABLE_CLASSES = [ORMPlayer, ORMGame, ORMWPerformance,
+                 ORMLPerformance, ORMTournament, ORMGithub]
 
 
 @pytest.fixture(scope='module')
@@ -18,11 +28,33 @@ def sample_player() -> PlayerCreate:
 
 class TestDBClient:
 
-    def test_init(self, db_client: DBClient):
+    def test_init(self, db_client):
         '''
         Ensure connected to expected database.
         '''
         assert db_client.engine.url.database == os.getenv('DATABASE') == 'test_db'
+
+    def test_generate_schema(self, db_client):
+        '''
+        Ensure all tables in the src/db/tables module with Base parent are in the database
+        '''
+        db_inspector = inspect(db_client.engine)
+        db_tables = db_inspector.get_table_names()
+
+        # ensure expected tables present
+        assert np.isin(
+            [table.__tablename__ for table in TABLE_CLASSES],
+            db_tables).all()
+
+        # ensure table matches expected schema
+        for table_class in TABLE_CLASSES:
+            for db_column in db_inspector.get_columns(table_class.__tablename__):
+                assert hasattr(table_class, db_column['name'])
+
+    def test_clear_db(self, db_client):
+        db_client.clear_db()
+        for table in TABLE_CLASSES:
+            assert db_client.session.query(table).count() == 0
 
 
 class TestCommandDB:
@@ -33,7 +65,7 @@ class TestCommandDB:
 
     def test_ingest_objects(self, db_client, command_db, sample_player):
         sample_player.first_name = 'Jerry'
-        command_db.ingest_objects([sample_player], ORMPlayer)
+        command_db.ingest_objects([sample_player], ORMPlayer, bulk=True)
 
         queried_player = db_client.session.query(ORMPlayer).\
             filter(ORMPlayer.id == sample_player.id).one()
@@ -49,7 +81,7 @@ class TestCommandDB:
 
         # ingesting this player again will force function to update instead of add
         sample_player.first_name = 'Tom'
-        command_db.ingest_objects([sample_player], ORMPlayer)
+        command_db.ingest_objects([sample_player], ORMPlayer, bulk=False)
 
         queried_player = db_client.session.query(ORMPlayer).\
             filter(ORMPlayer.id == sample_player.id).one()
