@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime
 
-from src.data.data_formatting import format_player, format_tournament, format_game, format_performances, raw_game_to_instances
+from src.data.data_formatting import format_player, _format_tournament, _format_game, _format_performances, raw_game_to_objects
 
 from src.db.models.pydantic.player import PlayerCreate
 from src.db.models.pydantic.game import GameCreate
@@ -25,10 +25,10 @@ def test_format_player(sample_players):
 
 
 @pytest.mark.slow
-def test_raw_game_to_instances(sample_games):
+def test_raw_game_to_objects(sample_games):
     game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
 
-    tournament, game, w_perf, l_perf = raw_game_to_instances(game)
+    tournament, game, w_perf, l_perf = raw_game_to_objects(game)
     assert isinstance(tournament, TournamentCreate)
     assert isinstance(game, GameCreate)
     assert isinstance(w_perf, PerformanceCreate)
@@ -37,7 +37,7 @@ def test_raw_game_to_instances(sample_games):
 
 @pytest.mark.slow
 def test_format_tournament(sample_games):
-    tournament = format_tournament(sample_games.iloc[0])
+    tournament = _format_tournament(sample_games.iloc[0])
 
     assert isinstance(tournament, TournamentCreate)
     assert tournament.id == sample_games.loc[0, 'tourney_id']
@@ -51,7 +51,7 @@ def test_format_tournament(sample_games):
 
 @pytest.mark.slow
 def test_format_game(sample_games):
-    game = format_game(sample_games.iloc[0])
+    game = _format_game(sample_games.iloc[0])
 
     assert isinstance(game, GameCreate)
     assert game.tournament_id == sample_games.loc[0, 'tourney_id']
@@ -64,7 +64,7 @@ def test_format_game(sample_games):
 def test_format_performances(sample_games):
     game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
 
-    w_perf, l_perf = format_performances(game, 'test_game')
+    w_perf, l_perf = _format_performances(game, 'test_game')
 
     assert w_perf.game_id == l_perf.game_id == 'test_game'
 
