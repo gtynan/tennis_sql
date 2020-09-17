@@ -39,7 +39,7 @@ def add_game_data(command_db: CommandDB, game_data: pd.DataFrame, bulk: bool = F
     command_db.ingest_objects(np.unique(l_performances), LPerformance, bulk=bulk)
 
 
-async def ingest_data(ctx, year_from: int = INGEST_YEAR_FROM, year_to: int = INGEST_YEAR_TO):  # datetime.now().year):
+async def ingest_data(ctx, year_from: int = INGEST_YEAR_FROM, year_to: int = INGEST_YEAR_TO):
     db_client = DBClient()
     db_client.generate_schema()
 
