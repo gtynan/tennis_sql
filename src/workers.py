@@ -4,7 +4,6 @@ import numpy as np
 from datetime import datetime
 
 from arq import cron
-from arq.connections import RedisSettings
 
 from .data.data_scraping import get_last_commit_sha, get_file_changes, get_raw_players, get_raw_games
 from .data.data_cleaning import clean_file_changes
@@ -18,6 +17,7 @@ from .db.models.orm.game import Game
 from .db.models.orm.performance import WPerformance, LPerformance
 
 from .constants import INGEST_YEAR_FROM, INGEST_YEAR_TO
+from .settings.redis import REDIS_SETTINGS
 
 
 def add_player_data(command_db: CommandDB, player_data: pd.DataFrame, bulk: bool = False) -> None:
@@ -79,7 +79,7 @@ async def ingest_data(ctx, year_from: int = INGEST_YEAR_FROM, year_to: int = ING
 
 
 class WorkerSettings:
-    redis_settings = RedisSettings()
+    redis_settings = REDIS_SETTINGS
     cron_jobs = [
         # will run once daily
         cron(ingest_data, hour=0, minute=0, second=0,  run_at_startup=True)
