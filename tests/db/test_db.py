@@ -32,7 +32,7 @@ class TestDBClient:
         '''
         Ensure connected to expected database.
         '''
-        assert db_client.engine.url.database == os.getenv('DATABASE') == 'test_db'
+        assert db_client.engine.url.database == os.getenv('MYSQL_DATABASE') == 'test_db'
 
     def test_generate_schema(self, db_client):
         '''
