@@ -1,8 +1,10 @@
+from typing import Optional, Union
 from pydantic import BaseModel as Base, validator
 import numpy as np
 
 
 class BaseModel(Base):
+    id: Optional[Union[str, int]]
 
     class Config:
         orm_mode = True

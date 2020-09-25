@@ -12,8 +12,6 @@ from .db.models.pydantic.game import Game
 
 app = FastAPI()
 
-DBClient().generate_schema()
-
 
 # dependency
 def get_query_db() -> Generator[QueryDB, None, None]:
@@ -25,7 +23,7 @@ def get_query_db() -> Generator[QueryDB, None, None]:
 
 
 @app.get('/player/{player_id}', response_model=Player)
-def read_player_by_id(player_id: int, db: QueryDB = Depends(get_query_db)):
+def read_player_by_id(player_id: int, db: QueryDB = Depends(get_query_db)) -> Player:
     player = db.get_object_by_id(player_id, ORMPlayer)
     if player is None:
         raise HTTPException(status_code=404, detail='Player not found')
@@ -33,7 +31,7 @@ def read_player_by_id(player_id: int, db: QueryDB = Depends(get_query_db)):
 
 
 @app.get('/tournament/{tourney_id}', response_model=Tournament)
-def read_tournament_by_id(tourney_id: str, db: QueryDB = Depends(get_query_db)):
+def read_tournament_by_id(tourney_id: str, db: QueryDB = Depends(get_query_db)) -> Tournament:
     tournament = db.get_object_by_id(tourney_id, ORMTournament)
     if tournament is None:
         raise HTTPException(status_code=404, detail='Tournament not found')
@@ -41,7 +39,7 @@ def read_tournament_by_id(tourney_id: str, db: QueryDB = Depends(get_query_db)):
 
 
 @app.get('/game/{game_id}', response_model=Game)
-def read_game_by_id(game_id: str, db: QueryDB = Depends(get_query_db)):
+def read_game_by_id(game_id: str, db: QueryDB = Depends(get_query_db)) -> Game:
     game = db.get_object_by_id(game_id, ORMGame)
     if game is None:
         raise HTTPException(status_code=404, detail='Game not found')

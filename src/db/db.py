@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Optional
 from datetime import datetime
 import numpy as np
 
@@ -21,7 +21,7 @@ class DBClient:
                  db_user: str = DB_CONFIG['db_user'],
                  db_pwd: str = DB_CONFIG['db_pwd'],
                  db_host: str = DB_CONFIG['db_host'],
-                 db_port: int = DB_CONFIG['db_port'],
+                 db_port: str = DB_CONFIG['db_port'],
                  db_name: str = DB_CONFIG['db_name']) -> None:
         """Create connection to database
 
@@ -45,12 +45,16 @@ class DBClient:
         event.listen(self.engine, "before_cursor_execute", DBClient.add_own_encoders)
 
     def generate_schema(self):
-        # any class inheriting Base that does not have a table in the db will have one generated for them
+        """Any class inheriting ORMBase will have a table generated for them
+        """
         ORMBase.metadata.create_all(self.engine)
 
-    def clear_db_values(self):
+    def clear_db(self):
+        """All rows in all tables will be cleared
+        """
         for tbl in reversed(ORMBase.metadata.sorted_tables):
             self.engine.execute(tbl.delete())
+        self.session.commit()
 
     @staticmethod
     def add_own_encoders(conn, cursor, query, *args):
@@ -66,6 +70,13 @@ class CommandDB:
         self.session = session
 
     def ingest_objects(self, objects: List[BaseModel], table: ORMBase, bulk: bool = False) -> None:
+        """Handles all ingestion to db
+
+        Args:
+            objects (List[BaseModel]): list of objects to be ingested
+            table (ORMBase): table to ingest objects into
+            bulk (bool, optional): if true will not check for duplicates (should only be true if db empty). Defaults to False.
+        """
         if bulk:
             objects = [table(**obj.dict()) for obj in objects]
             self.session.add_all(objects)
@@ -101,13 +112,22 @@ class QueryDB:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_object_by_id(self, id: Union[int, str], table: ORMBase) -> ORMBase:
+    def get_object_by_id(self, id: Union[int, str], table: ORMBase) -> Optional[ORMBase]:
+        """Given id and table to look in will return object if one
+
+        Args:
+            id (Union[int, str]): object id
+            table (ORMBase): table object resides in
+
+        Returns:
+            ORMBase: Object instance
+        """
         return self.session.query(table).\
             filter(table.id == id).one_or_none()
 
-    def get_last_ingested_sha(self) -> str:
+    def get_last_ingested_sha(self) -> Optional[str]:
         try:
             return self.session.query(ORMGithub).\
                 order_by(ORMGithub.date.desc()).first().sha
         except AttributeError:
-            return
+            return None

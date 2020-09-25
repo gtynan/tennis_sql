@@ -4,7 +4,7 @@ import requests
 from requests.exceptions import HTTPError
 from io import StringIO
 
-from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER
+from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, SCRAPING_HEADER
 
 
 def get_raw_players(n_players: int = None) -> pd.DataFrame:
@@ -35,39 +35,34 @@ def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataF
     returns:
         raw dataframe of games
     '''
-    if n_games:
-        data = pd.read_csv(WTA_URL.format(year_to), encoding="ISO-8859-1", nrows=n_games)
-        data[SOURCE_COL] = 'W'
-        return data
-    else:
-        data = None
-        for year in range(year_from, year_to + 1):
-            # each year we try scrape wta and itf data
-            for url, identifier in [(WTA_URL, WTA_IDENTIFIER), (ITF_URL, ITF_IDENTIFIER)]:
-                try:
-                    req = requests.get(url.format(year),
-                                       headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36'})
-                    # raises HttpError error if one
-                    req.raise_for_status()
+    data = None
+    for year in range(year_from, year_to + 1):
+        # each year we try scrape wta and itf data
+        for url, identifier in [(WTA_URL, WTA_IDENTIFIER), (ITF_URL, ITF_IDENTIFIER)]:
+            try:
+                req = requests.get(url.format(year),
+                                   headers=SCRAPING_HEADER)
+                # raises HttpError error if one
+                req.raise_for_status()
 
-                    # TODO add to logger
-                    print(f"GOT: {url.format(year)}")
+                # TODO add to logger
+                print(f"GOT: {url.format(year)}")
 
-                    new_data = pd.read_csv(StringIO(req.text))
-                    new_data[SOURCE_COL] = identifier
+                new_data = pd.read_csv(StringIO(req.text))
+                new_data[SOURCE_COL] = identifier
 
-                    if data is None:
-                        data = new_data
-                    else:
-                        data = data.append(new_data, ignore_index=True)
-                # file doesn't exist
-                except HTTPError:
-                    # TODO add to logger
-                    print(f'NOT FOUND: {url.format(year)}')
-                except AttributeError:
-                    # basically if ITF_URL is None
-                    pass
-        return data
+                if data is None:
+                    data = new_data
+                else:
+                    data = data.append(new_data, ignore_index=True)
+            # file doesn't exist
+            except HTTPError:
+                # TODO add to logger
+                print(f'NOT FOUND: {url.format(year)}')
+            except AttributeError:
+                # basically if ITF_URL is None
+                pass
+    return data
 
 
 def get_last_commit_sha() -> str:
