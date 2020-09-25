@@ -11,9 +11,9 @@
 1. Git clone to local machine.
 2. Configure constants depending on wants and needs (i.e. vary start date)
 3. Create `.env` file (rename `.test.env` and configure variables, variables in current form will run successfully)
-4. Docker build 
+4. Docker build and run
 ```
-docker-compose build and run
+docker-compose build
 docker-compose up
 ```
 5. Server live at: `0.0.0.0:5000`, docs found at `/docs`
