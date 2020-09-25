@@ -16,7 +16,7 @@
 docker-compose build
 docker-compose up
 ```
-5. Server live at: `0.0.0.0:5000`, docs found at `/docs`
+5. Server live at: `0.0.0.0:5000` (docs found at `/docs`)
 
 
 ## Notes
