@@ -409,7 +409,7 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests (2.0.2)", "six", "pytest-xdist", "virtualenv"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "A py.test plugin that parses environment files before running tests"
 name = "pytest-dotenv"
 optional = false
@@ -593,7 +593,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["jaraco.itertools", "func-timeout"]
 
 [metadata]
-content-hash = "bdff87698ab9c4758d4a7a8e4f7dc15d16b2b373da5eee22c32583f0e27b23fb"
+content-hash = "0cd9dbc402fa0dc0e5285c63f49dbd2e54fe7208b13e49f65eb53ea8a610c5b0"
 python-versions = "^3.7"
 
 [metadata.files]
