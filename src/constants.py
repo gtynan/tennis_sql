@@ -16,3 +16,12 @@ SCRAPING_HEADER = {
 
 INGEST_YEAR_FROM = 1968
 INGEST_YEAR_TO = datetime.now().year
+
+PLAYER_COLS = {
+    "id": "200000",
+    "first_name": "X",
+    "last_name": "X.1",
+    "nationality": "UNK",
+    "dob": "19000000",
+    "hand": "U",
+}

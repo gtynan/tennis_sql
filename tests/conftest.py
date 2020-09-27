@@ -20,7 +20,8 @@ def db_client():
 
 @pytest.fixture(scope='session')
 def sample_players():
-    return get_raw_players(n_players=5)
+    """Gets 5 sample WTA players"""
+    return get_raw_players().iloc[:5]
 
 
 @pytest.fixture(scope='session')

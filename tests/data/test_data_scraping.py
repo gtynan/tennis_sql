@@ -3,15 +3,17 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from src.constants import PLAYER_COLS
+
 from src.data.data_scraping import get_raw_players, get_raw_games, get_last_commit_sha, get_file_changes
 from src.data.data_cleaning import to_datetime
 
 
 @pytest.mark.slow
 def test_get_raw_players(sample_players):
-
-    assert len(sample_players) == 5
     assert isinstance(sample_players, pd.DataFrame)
+    # these columns are expected in other functions
+    assert np.isin(sample_players.columns, list(PLAYER_COLS.values())).all()
 
 
 @pytest.mark.slow
