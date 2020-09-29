@@ -1,22 +1,22 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Optional
 import pandas as pd
 import requests
 from requests.exceptions import HTTPError
 from io import StringIO
 
-from ..constants import PLAYER_URL, WTA_URL, ITF_URL, SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER, SCRAPING_HEADER
+
+from ..constants import PLAYER_URL, SOURCE_COL, GAME_SOURCES, SCRAPING_HEADER
+from ..logger import get_logger
+
+logger = get_logger("data_scraping")
 
 
 def get_raw_players() -> pd.DataFrame:
-    '''
-    Gets all WTA players in Jeff Sackmans WTA data
+    """Gets all WTA players in Jeff Sackmans WTA data
 
-    args:
-        n_players: (ignore just used for testing) Number of players to return
-
-    returns:
-        dataframe of players
-    '''
+    Returns:
+        pd.DataFrame: player details dataframe
+    """
     return pd.read_csv(
         PLAYER_URL,
         mangle_dupe_cols=True,  # duplicate columns i.e. X, X -> X, X.1
@@ -24,43 +24,38 @@ def get_raw_players() -> pd.DataFrame:
     )
 
 
-def get_raw_games(year_from: int, year_to: int, n_games: int = None) -> pd.DataFrame:
-    '''
-    Gets all WTA and ITF games
+def get_raw_games(year: int) -> Optional[pd.DataFrame]:
+    """Gets all games for specified year from GAME_SOURCES in constants.py
 
-    args:
-        n_games: (ignore just used for testing) returns most recent WTA matches
+    Args:
+        year (int): specified year to scrape game data
 
-    returns:
-        raw dataframe of games
-    '''
+    Returns:
+        Optional[pd.DataFrame]: all games for that year
+    """
     data = None
-    for year in range(year_from, year_to + 1):
-        # each year we try scrape wta and itf data
-        for url, identifier in [(WTA_URL, WTA_IDENTIFIER), (ITF_URL, ITF_IDENTIFIER)]:
-            try:
-                req = requests.get(url.format(year),
-                                   headers=SCRAPING_HEADER)
-                # raises HttpError error if one
-                req.raise_for_status()
+    for identifier, url in GAME_SOURCES.items():
+        try:
+            req = requests.get(url.format(year),
+                               headers=SCRAPING_HEADER)
+            # raises HttpError error if one
+            req.raise_for_status()
 
-                # TODO add to logger
-                print(f"GOT: {url.format(year)}")
+            logger.info(f"GOT: {url.format(year)}")
 
-                new_data = pd.read_csv(StringIO(req.text))
-                new_data[SOURCE_COL] = identifier
+            new_data = pd.read_csv(StringIO(req.text))
+            new_data[SOURCE_COL] = identifier
 
-                if data is None:
-                    data = new_data
-                else:
-                    data = data.append(new_data, ignore_index=True)
-            # file doesn't exist
-            except HTTPError:
-                # TODO add to logger
-                print(f'NOT FOUND: {url.format(year)}')
-            except AttributeError:
-                # basically if ITF_URL is None
-                pass
+            if data is None:
+                data = new_data
+            else:
+                data = data.append(new_data, ignore_index=True)
+        # file doesn't exist
+        except HTTPError:
+            logger.error(f'NOT FOUND: {url.format(year)}')
+        except AttributeError:
+            # if either URL is None
+            logger.error(f"URL ATTRIBUTE ERROR: ensure URL not None")
     return data
 
 
