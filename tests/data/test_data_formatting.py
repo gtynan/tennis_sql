@@ -8,27 +8,29 @@ from src.db.models.pydantic.game import GameCreate
 from src.db.models.pydantic.tournament import TournamentCreate
 from src.db.models.pydantic.performance import PerformanceCreate
 
+from src.constants import PLAYER_COLS, TOURNAMENT_COLS, GAME_COLS, PERFORMANCE_COLS
+
 
 @pytest.mark.slow
 def test_format_player(sample_players):
-    player = format_player(sample_players.iloc[0])
+    sample_player = sample_players.iloc[0]
+    formatted_player = format_player(sample_player).dict()
 
-    assert isinstance(player, PlayerCreate)
-    assert player.id == sample_players.loc[0, '200000']
-    assert player.first_name == sample_players.loc[0, 'X']
-    assert player.last_name == sample_players.loc[0, 'X.1']
-    assert player.nationality == sample_players.loc[0, 'UNK']
-    # convert back to int to ensure date correctly mapped
-    assert int(player.dob.strftime('%Y%m%d')) == sample_players.loc[0, '19000000']
-    assert isinstance(player.dob, datetime)
-    assert player.hand == sample_players.loc[0, 'U']
+    # check formatted values match to original values
+    for db_col, j_col in PLAYER_COLS.items():
+        # we expect dob to be converted to datetime
+        if db_col == 'dob':
+            assert isinstance(formatted_player[db_col], datetime)
+            assert int(formatted_player[db_col].strftime('%Y%m%d')) == sample_player[j_col]
+        else:
+            assert formatted_player[db_col] == sample_player[j_col]
 
 
 @pytest.mark.slow
 def test_raw_game_to_objects(sample_games):
-    game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
+    sample_game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
 
-    tournament, game, w_perf, l_perf = raw_game_to_objects(game)
+    tournament, game, w_perf, l_perf = raw_game_to_objects(sample_game)
     assert isinstance(tournament, TournamentCreate)
     assert isinstance(game, GameCreate)
     assert isinstance(w_perf, PerformanceCreate)
@@ -37,58 +39,45 @@ def test_raw_game_to_objects(sample_games):
 
 @pytest.mark.slow
 def test_format_tournament(sample_games):
-    tournament = _format_tournament(sample_games.iloc[0])
+    sample_game = sample_games.iloc[0]
+    formatted_tournament = _format_tournament(sample_game).dict()
 
-    assert isinstance(tournament, TournamentCreate)
-    assert tournament.id == sample_games.loc[0, 'tourney_id']
-    assert tournament.name == sample_games.loc[0, 'tourney_name']
-    assert tournament.surface == sample_games.loc[0, 'surface']
-    assert tournament.draw_size == sample_games.loc[0, 'draw_size']
-    assert tournament.level == sample_games.loc[0, 'tourney_level']
-    assert int(tournament.start_date.strftime('%Y%m%d')) == sample_games.loc[0, 'tourney_date']
-    assert isinstance(tournament.start_date, datetime)
+    # check formatted values match to original values
+    for db_col, j_col in TOURNAMENT_COLS.items():
+        # we expect start_date to be converted to datetime
+        if db_col == 'start_date':
+            assert isinstance(formatted_tournament[db_col], datetime)
+            assert int(formatted_tournament[db_col].strftime('%Y%m%d')) == sample_game[j_col]
+        else:
+            assert formatted_tournament[db_col] == sample_game[j_col]
 
 
 @pytest.mark.slow
 def test_format_game(sample_games):
-    game = _format_game(sample_games.iloc[0])
+    sample_game = sample_games.iloc[0]
+    formatted_game = _format_game(sample_game).dict()
 
-    assert isinstance(game, GameCreate)
-    assert game.tournament_id == sample_games.loc[0, 'tourney_id']
-    assert game.id == f"{sample_games.loc[0, 'tourney_id']}_{sample_games.loc[0, 'match_num']}"
-    assert game.round == sample_games.loc[0, 'round']
-    assert game.score == sample_games.loc[0, 'score']
+    # ensure id correctly generated from __init__ function
+    assert formatted_game['id'] == f"{sample_game[GAME_COLS['tournament_id']]}_{sample_game[GAME_COLS['match_num']]}"
+
+    # check formatted values match to original values
+    for db_col, j_col in GAME_COLS.items():
+        assert formatted_game[db_col] == sample_game[j_col]
 
 
 @pytest.mark.slow
 def test_format_performances(sample_games):
-    game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
+    sample_game = sample_games.iloc[0].rename({'winner_id': 'w_id', 'loser_id': 'l_id'})
 
-    w_perf, l_perf = _format_performances(game, 'test_game')
+    formatted_w_perf, formatted_l_perf = [perf.dict() for perf in _format_performances(sample_game, 'test_game')]
 
-    assert w_perf.game_id == l_perf.game_id == 'test_game'
+    assert formatted_w_perf['game_id'] == formatted_l_perf['game_id'] == 'test_game'
 
-    assert isinstance(w_perf, PerformanceCreate)
-    assert isinstance(l_perf, PerformanceCreate)
+    # check formatted values match to original values
+    for prefix, performance in [('w_', formatted_w_perf), ('l_', formatted_l_perf)]:
+        for db_col, j_col in PERFORMANCE_COLS.items():
+            assert performance[db_col] == sample_game[prefix + j_col]  # have to add prefix back
 
-    assert w_perf.player_id == game['w_id']
-    assert w_perf.won
-    assert w_perf.aces == game['w_ace']
-    assert w_perf.double_faults == game['w_df']
-    assert w_perf.serve_points == game['w_svpt']
-    assert w_perf.first_serve_in == game['w_1stIn']
-    assert w_perf.first_serve_won == game['w_1stWon']
-    assert w_perf.second_serve_won == game['w_2ndWon']
-    assert w_perf.break_points_faced == game['w_bpFaced']
-    assert w_perf.break_points_saved == game['w_bpSaved']
-
-    assert l_perf.player_id == game['l_id']
-    assert ~l_perf.won
-    assert l_perf.aces == game['l_ace']
-    assert l_perf.double_faults == game['l_df']
-    assert l_perf.serve_points == game['l_svpt']
-    assert l_perf.first_serve_in == game['l_1stIn']
-    assert l_perf.first_serve_won == game['l_1stWon']
-    assert l_perf.second_serve_won == game['l_2ndWon']
-    assert l_perf.break_points_faced == game['l_bpFaced']
-    assert l_perf.break_points_saved == game['l_bpSaved']
+    # ensure outcomes as expected
+    assert formatted_w_perf['won']
+    assert ~formatted_l_perf['won']

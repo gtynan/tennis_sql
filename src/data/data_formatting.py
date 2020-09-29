@@ -48,7 +48,7 @@ def raw_game_to_objects(row: pd.Series) -> Tuple[TournamentCreate, GameCreate, P
     return tournament, game, w_performance, l_performance
 
 
-def _format_tournament(row: pd.Series, id: str = 'tourney_id', name: str = 'tourney_name', surface: str = 'surface', draw_size: str = 'draw_size', level: str = 'tourney_level', start_date: str = 'tourney_date') -> TournamentCreate:
+def _format_tournament(row: pd.Series, id: str = 'tourney_id', name: str = 'tourney_name', surface: str = 'surface', draw_size: str = 'draw_size', level: str = 'tourney_level', start_date: str = 'tourney_date', circuit: str = SOURCE_COL) -> TournamentCreate:
     """Create pydantic tournament create object from game row 
     """
     return TournamentCreate(id=row[id],
@@ -56,17 +56,18 @@ def _format_tournament(row: pd.Series, id: str = 'tourney_id', name: str = 'tour
                             surface=row[surface],
                             draw_size=row[draw_size],
                             level=row[level],
-                            start_date=to_datetime(row[start_date]))
+                            start_date=to_datetime(row[start_date]),
+                            circuit=row[circuit])
 
 
 def _format_game(row: pd.Series, tournament_id: str = 'tourney_id', match_num: str = 'match_num', round: str = 'round', score: str = 'score', circuit: str = SOURCE_COL) -> GameCreate:
     """Create pydantic game create object from game row 
     """
-    return GameCreate(id=get_game_id(row[tournament_id], row[match_num]),
-                      tournament_id=row[tournament_id],
-                      round=row[round],
-                      score=row[score],
-                      circuit=row[circuit])
+    return GameCreate(  # id=get_game_id(row[tournament_id], row[match_num]),
+        tournament_id=row[tournament_id],
+        match_num=row[match_num],
+        round=row[round],
+        score=row[score])
 
 
 def _format_performances(row: pd.Series,  game_id: str,  player_id: str = 'id', aces: str = 'ace', double_faults: str = 'df',
