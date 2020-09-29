@@ -49,6 +49,7 @@ GAME_COLS = {
 }
 
 PERFORMANCE_COLS = {
+    "player_id": "id",
     "aces": "ace",
     "double_faults": "df",
     "serve_points": "svpt",
