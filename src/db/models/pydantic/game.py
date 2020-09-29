@@ -11,13 +11,20 @@ class GameBase(BaseModel):
     id: str
     round: str
     score: Optional[str] = None
-    circuit: str
 
 
 class GameCreate(GameBase, CreateModel):
     """Pydantic create schema for games
     """
     tournament_id: str
+    match_num: int
+
+    def __init__(self, tournament_id: str, match_num: int, **data):
+        # generate game_id based on tournament id and match_num
+        super().__init__(id=f'{tournament_id}_{match_num}',
+                         tournament_id=tournament_id,
+                         match_num=match_num,
+                         **data)
 
 
 class Game(GameBase):
