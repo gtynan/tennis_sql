@@ -40,6 +40,7 @@ def test_get_last_commit_sha():
 
 @ pytest.mark.slow
 def test_get_file_changes():
+    # we know these files should return given the two shas passed below
     expected_files = ["wta_matches_2020.csv", "wta_matches_1999.csv",
                       "wta_matches_1998.csv", "wta_matches_1991.csv", "wta_matches_1984.csv"]
 

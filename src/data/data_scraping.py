@@ -4,9 +4,9 @@ import requests
 from requests.exceptions import HTTPError
 from io import StringIO
 
-
 from ..constants import PLAYER_URL, SOURCE_COL, GAME_SOURCES, SCRAPING_HEADER
 from ..logger import get_logger
+
 
 logger = get_logger("data_scraping")
 
@@ -36,6 +36,7 @@ def get_raw_games(year: int) -> Optional[pd.DataFrame]:
     data = None
     for identifier, url in GAME_SOURCES.items():
         try:
+            # using requests rather than pandas so that we can add a header
             req = requests.get(url.format(year),
                                headers=SCRAPING_HEADER)
             # raises HttpError error if one
@@ -53,8 +54,8 @@ def get_raw_games(year: int) -> Optional[pd.DataFrame]:
         # file doesn't exist
         except HTTPError:
             logger.error(f'NOT FOUND: {url.format(year)}')
+        # if either URL is None
         except AttributeError:
-            # if either URL is None
             logger.error(f"URL ATTRIBUTE ERROR: ensure URL not None")
     return data
 
@@ -68,7 +69,8 @@ def get_last_commit_sha() -> str:
     Returns:
         str: SHA
     """
-    r = requests.get('https://api.github.com/repos/JeffSackmann/tennis_wta/commits')
+    r = requests.get('https://api.github.com/repos/JeffSackmann/tennis_wta/commits',
+                     headers=SCRAPING_HEADER)
     if r.status_code == 200:
         return r.json()[0]['sha']
     raise Exception("Get last commit failed.")
@@ -87,13 +89,13 @@ def get_file_changes(sha: str, previous_sha: str) -> Iterator[Tuple[str, str]]:
     Yields:
         Iterator[Tuple[str, str]]: (file_name, file_changes)
     """
-    if previous_sha:
-        r = requests.get(f'https://api.github.com/repos/jeffsackmann/tennis_wta/compare/{previous_sha}...{sha}')
+    r = requests.get(f'https://api.github.com/repos/jeffsackmann/tennis_wta/compare/{previous_sha}...{sha}',
+                     headers=SCRAPING_HEADER)
     if r.status_code == 200:
         for file in r.json()['files']:
             try:
-                yield file['filename'], file['patch']
-            # when file has no `patch`
+                yield file['filename'], file['patch']  # patch contains all raw changes made
+            # when file has no `patch` it means no changes were made
             except:
                 pass
     else:
