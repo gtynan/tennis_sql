@@ -7,19 +7,6 @@ import io
 from ..constants import SOURCE_COL, WTA_IDENTIFIER, ITF_IDENTIFIER
 
 
-def get_game_id(tournament_id: str, match_num: int) -> str:
-    """Generate unique game_id
-
-    Args:
-        tournament_id (str): id of tournament game played in
-        match_num (int): game number within tournament
-
-    Returns:
-        str: game_id
-    """
-    return f'{tournament_id}_{match_num}'
-
-
 @overload
 def to_datetime(date: Union[int, str]) -> datetime: ...
 @overload
@@ -35,6 +22,7 @@ def to_datetime(date: Union[pd.Series, int, float, str]) -> Union[pd.Series, dat
     Returns:
         datetime: datetime representation
     """
+    # expect date to be YYYYMMDD
     format = '%Y%m%d'
 
     if isinstance(date, pd.Series):

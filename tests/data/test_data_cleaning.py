@@ -4,13 +4,8 @@ import numpy as np
 from datetime import datetime
 
 from src.data.data_scraping import get_file_changes
-from src.data.data_cleaning import to_datetime, raw_changes_to_df, get_game_id, clean_file_changes
+from src.data.data_cleaning import to_datetime, raw_changes_to_df, clean_file_changes
 from src.constants import SOURCE_COL, WTA_IDENTIFIER
-
-
-def test_get_game_id():
-    t_id, m_num = 'Test_T', 1
-    assert get_game_id(t_id, m_num) == f'{t_id}_{m_num}'
 
 
 def test_to_datetime():
@@ -49,4 +44,3 @@ def test_clean_file_changes():
     assert player_data is None
     assert isinstance(game_data, pd.DataFrame)
     assert all(game_data[SOURCE_COL] == WTA_IDENTIFIER)
-    print(game_data)
