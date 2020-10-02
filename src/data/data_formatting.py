@@ -57,11 +57,10 @@ def _format_tournament(row: pd.Series) -> TournamentCreate:
 def _format_game(row: pd.Series) -> GameCreate:
     """Create pydantic game create object from game row 
     """
-    return GameCreate(  # id=get_game_id(row[tournament_id], row[match_num]),
-        tournament_id=row[GAME_COLS['tournament_id']],
-        match_num=row[GAME_COLS['match_num']],
-        round=row[GAME_COLS['round']],
-        score=row[GAME_COLS['score']])
+    return GameCreate(tournament_id=row[GAME_COLS['tournament_id']],
+                      match_num=row[GAME_COLS['match_num']],
+                      round=row[GAME_COLS['round']],
+                      score=row[GAME_COLS['score']])
 
 
 def _format_performances(row: pd.Series,  game_id: str) -> Iterator[PerformanceCreate]:
