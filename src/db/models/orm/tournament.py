@@ -14,3 +14,4 @@ class Tournament(Base):
     draw_size = Column(Integer)
     level = Column(String(50))
     start_date = Column(DateTime)
+    circuit = Column(String(50))

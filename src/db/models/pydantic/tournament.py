@@ -12,6 +12,7 @@ class TournamentBase(BaseModel):
     draw_size: int
     level: str
     start_date: datetime
+    circuit: str
 
 
 class TournamentCreate(TournamentBase, CreateModel):

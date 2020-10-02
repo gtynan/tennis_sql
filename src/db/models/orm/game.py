@@ -20,4 +20,3 @@ class Game(Base):
 
     round = Column(String(50))
     score = Column(String(50))
-    circuit = Column(String(50))
