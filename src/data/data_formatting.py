@@ -2,7 +2,7 @@ from typing import Tuple, Iterator
 import pandas as pd
 
 from ..constants import SOURCE_COL, PLAYER_COLS, GAME_COLS, TOURNAMENT_COLS, PERFORMANCE_COLS
-from .data_cleaning import to_datetime, get_game_id
+from .data_cleaning import to_datetime
 from ..db.models.pydantic.player import PlayerCreate
 from ..db.models.pydantic.tournament import TournamentCreate
 from ..db.models.pydantic.game import GameCreate
