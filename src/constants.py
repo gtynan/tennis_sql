@@ -10,9 +10,12 @@ SCRAPING_HEADER = {
 INGEST_YEAR_FROM = 1968
 INGEST_YEAR_TO = datetime.now().year
 
+WTA_IDENTIFIER = "WTA"
+ITF_IDENTIFIER = "WTA"
+
 GAME_SOURCES = {
-    "WTA": "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_{}.csv",
-    "ITF": "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_qual_itf_{}.csv",
+    WTA_IDENTIFIER: "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_{}.csv",
+    ITF_IDENTIFIER: "https://raw.githubusercontent.com/JeffSackmann/tennis_wta/master/wta_matches_qual_itf_{}.csv",
 }
 
 SOURCE_COL = 'source'

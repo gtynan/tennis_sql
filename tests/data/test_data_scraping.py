@@ -10,22 +10,28 @@ from src.data.data_cleaning import to_datetime
 
 
 @pytest.mark.slow
-def test_get_raw_players(sample_players):
+def test_get_raw_players():
+    sample_players = get_raw_players().head()
     assert isinstance(sample_players, pd.DataFrame)
     # these columns are expected to extract player details
     assert np.isin(sample_players.columns, list(PLAYER_COLS.values())).all()
 
 
 @pytest.mark.slow
-def test_get_raw_games(sample_games):
+def test_get_raw_games():
+    YEAR = 2020
+    sample_games = get_raw_games(YEAR).head()
+
     assert isinstance(sample_games, pd.DataFrame)
-    # ensure all expected year (conftest.py sets year)
-    assert all(to_datetime(sample_games[TOURNAMENT_COLS["start_date"]]).dt.year == 2020)
+    assert all(to_datetime(sample_games[TOURNAMENT_COLS["start_date"]]).dt.year == YEAR)
 
     # columns required to extract tournament details from csv
     assert np.isin(list(TOURNAMENT_COLS.values()), sample_games.columns).all()
     # columns required to extract game details from csv
     assert np.isin(list(GAME_COLS.values()), sample_games.columns).all()
+
+    # performance cols expects a player id with format prefix_id, this will be a cleaning step in the pipeline but not handled by get_raw
+    sample_games = sample_games.rename(columns={'winner_id': 'w_id', 'loser_id': 'l_id'})
 
     # winner and loser performance columns have a prefix thus we remove said prefix before ensuring cols present
     cols_without_prefix = [col[2:] for col in sample_games.columns]
