@@ -13,7 +13,7 @@ class Game(Base):
     id = Column(String(50), primary_key=True)
 
     tournament_id = Column(String(50), ForeignKey('tournament.id'))
-    tournament = relationship("Tournament", uselist=False, foreign_keys=[tournament_id])
+    tournament = relationship("Tournament", uselist=False, foreign_keys=[tournament_id], back_populates="games")
 
     w_performance = relationship("WPerformance", uselist=False)
     l_performance = relationship("LPerformance", uselist=False)

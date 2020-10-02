@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Integer, DateTime
+from sqlalchemy.orm import relationship
 
 from .base import Base
 
@@ -15,3 +16,5 @@ class Tournament(Base):
     level = Column(String(50))
     start_date = Column(DateTime)
     circuit = Column(String(50))
+
+    games = relationship("Game", uselist=True)
