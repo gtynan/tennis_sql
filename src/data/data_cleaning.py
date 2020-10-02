@@ -1,4 +1,4 @@
-from typing import Union, overload, List, Tuple, Iterator
+from typing import Union, overload, List, Tuple, Iterator, Optional
 import pandas as pd
 import numpy as np
 from datetime import datetime
@@ -61,17 +61,29 @@ def raw_changes_to_df(raw_string: str, columns: List[str]) -> pd.DataFrame:
     return df.reset_index(drop=True)
 
 
-def clean_file_changes(file_changes: Iterator[Tuple[str, str]], player_cols: List[str], game_cols: List[str]):
+def clean_file_changes(file_changes: Iterator[Tuple[str, str]], player_cols: List[str], game_cols: List[str]) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    """Given tuples of file changes generate cleaned player and game dataframes to be ingested into db
+
+    Args:
+        file_changes (Iterator[Tuple[str, str]]): tuples of (filename, raw changes string)
+        player_cols (List[str]): columns to use for player datafrane
+        game_cols (List[str]): columns to use for game datafrane
+
+    Returns:
+        [type]: cleaned player dataframe to be ingested, cleaned game dataframe to be ingested (EITHER CAN BE NONE IF NOTHING CHANGED)
+    """
     player_data, game_data = None, None
 
     for file_name, raw_data in file_changes:
         if 'players' in file_name:
-            # player data, will only ever appear once as an update hence no append
+            # player data, will only ever appear once as an update as jsackman only works from one player file hence no append
             player_data = raw_changes_to_df(raw_data, columns=player_cols)
             # back to for loop start as not adding game
             continue
+
         new_games = raw_changes_to_df(raw_data, columns=game_cols)
-        if 'itf' in file_name:
+
+        if ITF_IDENTIFIER.lower() in file_name.lower():
             new_games[SOURCE_COL] = ITF_IDENTIFIER
         else:
             new_games[SOURCE_COL] = WTA_IDENTIFIER
